@@ -1,0 +1,36 @@
+Add thumbnail and picture in proper resolution
+Create Server
+Create Client
+Send simple message
+Send protobuf message
+
+
+
+
+
+
+
+
+
+
+
+
+DONE
+π: SSH
+π: VNC (http://edmundofuentes.com/post/45179343394/raspberry-pi-without-keyboard-mouse-nor-screen)
+π: Change password
+π: Change hostname `sudo nano /etc/hostname` (sensationdriver)
+π: Zeroconf aka Bonjour: `sudo apt-get install avahi-daemon` (sensationdriver.local)
+π: Configure I2C
+  - 
+
+
+Outline
+Hardware choices
+  Raspberry Pi
+Software choices
+  Protobuf
+    Overview http://talks.spline.de/slides/protobuf.pdf
+    Why?
+  Protocol
+    4 byte integer message size (big endian)
