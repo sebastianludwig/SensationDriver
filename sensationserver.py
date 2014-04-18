@@ -10,61 +10,36 @@ class SensationServer:
   def listen(self, address, port):
     self.socket.bind((address, port))
     self.socket.listen(0)
-    
+  
   def handle_client(self, client_socket, client_address):
     print 'connection from', client_address
-    
     try:
-      data = self.receive_bytes(4, client_socket)
-      if not data: return
-      message_length = int(struct.unpack('!i', data)[0])
-      message = self.receive_bytes(message_length, client_socket)
-      print 'message %s' % message
-
-    finally:
-      client_socket.close()
-      
-  def receive_bytes(self, number_of_bytes, client_socket):
-    print 'trying to receive %d bytes' % number_of_bytes
-    bytes_received = 0
-    result = ''
-    while len(result) < number_of_bytes:
-      remaining_bytes = number_of_bytes - len(result)
-      recv_bytes = min(remaining_bytes, 16)
-      print 'got "%s"...' % result
-      print 'remaining %d bytes' % recv_bytes
-      data = client_socket.recv(recv_bytes)
-      print 'received %s' % data
-      if not data: return None
-      
-      result += data
-    print 'finished with "%s"' % result
-    return result
-    
-  def handle_client_new(self, client_socket, client_address):
-    print 'connection from', client_address
-    try:
-      data = ''
+      buffer = ''
       message_size = None
       
       while True:
-        new_data = client_socket.recv(16)
-        if not new_data:
-          break
+        new_data = client_socket.recv(4096)
+        if not new_data: break
         
-        data += new_data
+        buffer += new_data
         
-        if message_size == None and len(data) >= 4:
-          message_size = int(struct.unpack('!i', data[:4])[0])
-          print 'received message of size %d' % message_size
-          data = data[4:]
-        if not message_size == None and len(data) >= message_size:
-          print 'received message %s' % data[:message_size]
-          data = data[message_size:]
+        # process the buffer
+        while True:
+          # message_size to parse
+          if message_size == None and len(buffer) >= 4:
+            message_size = int(struct.unpack('!i', buffer[:4])[0])
+            buffer = buffer[4:]
+          # message to parse
+          elif message_size and len(buffer) >= message_size:
+            buffer = buffer[message_size:]
+            message_size = None
+          # neither -> need more data
+          else:
+            break
         
     finally:
       client_socket.close()
-    
+  
     
   def loop(self):
     try:
@@ -74,7 +49,7 @@ class SensationServer:
         print 'waiting for a connection'
         client_socket, client_address = self.socket.accept()
 
-        self.handle_client_new(client_socket, client_address)
+        self.handle_client(client_socket, client_address)
         
     except KeyboardInterrupt:
       print "^C detected" 

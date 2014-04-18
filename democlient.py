@@ -14,7 +14,7 @@ class DemoClient:
     self.socket.connect((host, port))
   
   def disconnect(self):
-    self.socekt.close()
+    self.socket.close()
   
   def send(self, message):
     message_length = struct.pack('!i', len(message))  # message length as network formatted (big-endian) byte array
@@ -26,6 +26,9 @@ client = DemoClient()
 client.connect('localhost', 10000)
 
 client.send('whatever this is')
+client.send('something else')
+
+client.disconnect()
 
 
 exit()
