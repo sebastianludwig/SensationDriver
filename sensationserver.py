@@ -12,10 +12,9 @@ class SensationServer:
     self.socket.listen(0)
     
   def handle_client(self, client_socket, client_address):
+    print 'connection from', client_address
+    
     try:
-      print 'connection from', client_address
-
-      # Receive the data in small chunks and retransmit it
       data = self.receive_bytes(4, client_socket)
       if not data: return
       message_length = int(struct.unpack('!i', data)[0])
@@ -23,7 +22,6 @@ class SensationServer:
       print 'message %s' % message
 
     finally:
-      # Clean up the connection
       client_socket.close()
       
   def receive_bytes(self, number_of_bytes, client_socket):
@@ -44,23 +42,23 @@ class SensationServer:
     return result
     
   def handle_client_new(self, client_socket, client_address):
+    print 'connection from', client_address
     try:
       data = ''
       message_size = None
       
       while True:
         new_data = client_socket.recv(16)
-        if not new_data: 
-          print 'did not receive anything?!'
+        if not new_data:
           break
         
         data += new_data
         
-        if not message_size == None and len(data) >= 4:
+        if message_size == None and len(data) >= 4:
           message_size = int(struct.unpack('!i', data[:4])[0])
           print 'received message of size %d' % message_size
           data = data[4:]
-        if message_size and len(data) >= message_size:
+        if not message_size == None and len(data) >= message_size:
           print 'received message %s' % data[:message_size]
           data = data[message_size:]
         
@@ -76,7 +74,7 @@ class SensationServer:
         print 'waiting for a connection'
         client_socket, client_address = self.socket.accept()
 
-        self.handle_client(client_socket, client_address)
+        self.handle_client_new(client_socket, client_address)
         
     except KeyboardInterrupt:
       print "^C detected" 
