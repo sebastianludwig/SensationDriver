@@ -1,11 +1,10 @@
-#! python
-
 import socket
 import struct
 
 class SensationServer:
   def __init__(self):
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.handler = None
   
   def listen(self, address, port):
     self.socket.bind((address, port))
@@ -32,7 +31,7 @@ class SensationServer:
           # message to parse
           elif message_size and len(buffer) >= message_size:
             message = buffer[:message_size]
-            print 'received "%s"' % message
+            if self.handler: self.handler.process_message(message)
             buffer = buffer[message_size:]
             message_size = None
           # neither -> need more data
@@ -59,9 +58,3 @@ class SensationServer:
     finally: 
       print "closing server.."
       self.socket.close()
-
-
-
-server = SensationServer()
-server.listen('localhost', 10000)
-server.loop()

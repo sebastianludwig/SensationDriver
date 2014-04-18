@@ -3,11 +3,6 @@
 
 
 
-
-
-
-
-
 DONE
 π: SSH
 π: VNC (http://edmundofuentes.com/post/45179343394/raspberry-pi-without-keyboard-mouse-nor-screen)
@@ -21,8 +16,8 @@ py: basic server & client: transmit multiple messages from c2s (da2b149)
 proto: DL v2.5
 proto: install: ./configure, make, make check, make install (README.txt)
 py: requirements.txt to add protobuf dependency
-proto: command definition (sensationprotocol.proto) ()
-py: send and receive
+proto: command definition (sensationprotocol.proto) (b7dc8d6)
+py: send and receive proto command message
 
 
 
