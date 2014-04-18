@@ -1,6 +1,3 @@
-Send protobuf message
-
-
 
 
 
@@ -19,6 +16,14 @@ DONE
 π: Zeroconf aka Bonjour: `sudo apt-get install avahi-daemon` (sensationdriver.local)
 π: Configure I2C
   - 
+
+py: basic server & client: transmit multiple messages from c2s (da2b149)
+proto: DL v2.5
+proto: install: ./configure, make, make check, make install (README.txt)
+py: requirements.txt to add protobuf dependency
+proto: command definition (sensationprotocol.proto) ()
+py: send and receive
+
 
 
 Outline
