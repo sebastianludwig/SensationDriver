@@ -1,6 +1,7 @@
 link actor to protobuf message
-copy files to π
 send protobuf message from unity
+
+
 
 
 
@@ -21,19 +22,22 @@ DONE
     - git clone https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code.git
     - `sudo python Adafruit-Raspberry-Pi-Python-Code/Adafruit_PWM_Servo_Driver/Servo_Example.py`
     -> oszi output
-
 py: basic server & client: transmit multiple messages from c2s (da2b149)
 proto: DL v2.5
 proto: install: ./configure, make, make check, make install (README.txt)
 py: requirements.txt to add protobuf dependency
 proto: command definition (sensationprotocol.proto) (b7dc8d6)
 py: send and receive proto command message (a9f20e9)
+π: Sync project files `rsync -ar -e "ssh -l pi" --exclude 'lib' --exclude 'include' --exclude='.*' ~/projects/SensationDriver/ sensationdriver.local:/home/pi/projects/SensationDriver`
 
 
 
 Outline
 Hardware choices
   Raspberry Pi
+  I2C Bus
+  Extension Board (16x12 Bit PWM http://www.adafruit.com/products/815 + PCA9685 datasheet)
+    - PWM must be set 8 LSBits + 4 MSBits separately
 Software choices
   Protobuf
     Overview http://talks.spline.de/slides/protobuf.pdf
