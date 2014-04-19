@@ -1,4 +1,3 @@
-link actor to protobuf message
 send protobuf message from unity
 
 
@@ -25,10 +24,13 @@ DONE
 py: basic server & client: transmit multiple messages from c2s (da2b149)
 proto: DL v2.5
 proto: install: ./configure, make, make check, make install (README.txt)
-py: requirements.txt to add protobuf dependency
+π: Install pip (`curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py | sudo python`)
+py: requirements.txt to add protobuf dependency (`pip install -r requirements.txt` + sudo@π)
 proto: command definition (sensationprotocol.proto) (b7dc8d6)
 py: send and receive proto command message (a9f20e9)
 π: Sync project files `rsync -ar -e "ssh -l pi" --exclude 'lib' --exclude 'include' --exclude='.*' ~/projects/SensationDriver/ sensationdriver.local:/home/pi/projects/SensationDriver`
+py: send command from mac client to π server
+
 
 
 
