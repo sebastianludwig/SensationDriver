@@ -1,4 +1,6 @@
-
+link actor to protobuf message
+copy files to π
+send protobuf message from unity
 
 
 
@@ -9,15 +11,23 @@ DONE
 π: Change password
 π: Change hostname `sudo nano /etc/hostname` (sensationdriver)
 π: Zeroconf aka Bonjour: `sudo apt-get install avahi-daemon` (sensationdriver.local)
-π: Configure I2C
-  - 
+π: Configure I2C (https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c)
+  - connect 16 channel 12 bit servo driver (http://www.adafruit.com/products/815)
+  - add "i2c-bcm2708" and "i2c-dev" to /etc/modules
+  - sudo apt-get install "python-smbus" and "i2c-tools"
+  - comment out "spi-bcm2708" and "i2c-bcm2708" in /etc/modprobe.d/raspi-blacklist.conf (if it exists)
+  -> `sudo i2cdetect -y 1` should detect something (not an empty table, probably 40 & 70)
+  - test it (with oszi connected to output 0)
+    - git clone https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code.git
+    - `sudo python Adafruit-Raspberry-Pi-Python-Code/Adafruit_PWM_Servo_Driver/Servo_Example.py`
+    -> oszi output
 
 py: basic server & client: transmit multiple messages from c2s (da2b149)
 proto: DL v2.5
 proto: install: ./configure, make, make check, make install (README.txt)
 py: requirements.txt to add protobuf dependency
 proto: command definition (sensationprotocol.proto) (b7dc8d6)
-py: send and receive proto command message
+py: send and receive proto command message (a9f20e9)
 
 
 
@@ -30,3 +40,4 @@ Software choices
     Why?
   Protocol
     4 byte integer message size (big endian)
+    Command message (just plenty of them)
