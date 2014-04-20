@@ -1,6 +1,19 @@
-send protobuf message from unity
-
-
+find way to generate c# classes from .proto files - see TODO below (should work under windows)
+multiple types of messages
+  - all to 0
+  - frequency?
+  - rename Command
+chain boards
+better unity editor (KISS, but Array of Objects where one can select region and index for each)
+  - actually every Probe also needs a position & orientation
+  - Probe
+    - position
+    - orientation
+    - draws ray in editor
+    - reach (distance)
+    - animation curve (scaling)
+    - bool inverted
+actually drive actor
 
 
 
@@ -18,9 +31,15 @@ DONE
   - comment out "spi-bcm2708" and "i2c-bcm2708" in /etc/modprobe.d/raspi-blacklist.conf (if it exists)
   -> `sudo i2cdetect -y 1` should detect something (not an empty table, probably 40 & 70)
   - test it (with oszi connected to output 0)
-    - git clone https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code.git
+    - `git clone https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code.git`
     - `sudo python Adafruit-Raspberry-Pi-Python-Code/Adafruit_PWM_Servo_Driver/Servo_Example.py`
     -> oszi output
+π: Backup (http://minordiscoveries.wordpress.com/2013/03/30/backing-up-raspberry-pi-sd-card-on-mac-os-x/)
+  - `diskutil list` & `diskutil unmountDisk /dev/disk?`
+  - `sudo dd bs=1m if=/dev/rdisk? of=/Volumes/Macintosh\ HD/RaspberryPi/sensationdriver_0X_.img`
+  - compressed: `sudo dd bs=1m if=/dev/rdisk? | gzip > /Volumes/Macintosh\ HD/RaspberryPi/sensationdriver_0X_.img.gz`
+  - restore: `gzip -dc /Volumes/Macintosh\ HD/RaspberryPi/sensationdriver_0X_.img.gz | sudo dd bs=1m of=/dev/rdisk?`
+
 py: basic server & client: transmit multiple messages from c2s (da2b149)
 proto: DL v2.5
 proto: install: ./configure, make, make check, make install (README.txt)
@@ -28,13 +47,21 @@ proto: install: ./configure, make, make check, make install (README.txt)
 py: requirements.txt to add protobuf dependency (`pip install -r requirements.txt` + sudo@π)
 proto: command definition (sensationprotocol.proto) (b7dc8d6)
 py: send and receive proto command message (a9f20e9)
+py: Add Adafruit PWM driver library (https://learn.adafruit.com/adafruit-16-channel-servo-driver-with-raspberry-pi/library-reference) (64980c0)
 π: Sync project files `rsync -ar -e "ssh -l pi" --exclude 'lib' --exclude 'include' --exclude='.*' ~/projects/SensationDriver/ sensationdriver.local:/home/pi/projects/SensationDriver`
-py: send command from mac client to π server
+py: send command from mac client to π server (bcf0add)
 
-
+unity: add unity version of protobuf-net.dll to project (check source for examples!)
+[unity: write equivalent of command definition in C#] (https://code.google.com/p/protobuf-net/wiki/GettingStarted)
+  - TODO: test ProtoGen (Windows only)
+unity: send protobuf message from unity to π (37bf2ae)
+unity: send message each update with intensity coupled to distance (1d58603)
 
 
 Outline
+Motivation
+Others
+  [Transfer list from collected links]
 Hardware choices
   Raspberry Pi
   I2C Bus
@@ -43,7 +70,12 @@ Hardware choices
 Software choices
   Protobuf
     Overview http://talks.spline.de/slides/protobuf.pdf
-    Why?
+    Why? (alt. HTTP & JSON-POST)
+      - fast
+      - pretty much every language
+    protobuf-net
+      - comes with precompiled Unity3D DLL
   Protocol
     4 byte integer message size (big endian)
     Command message (just plenty of them)
+  Unity3D
