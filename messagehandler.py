@@ -4,7 +4,7 @@ import adafruit
 class MessageHandler:
   def __init__(self):
     self.pwm = adafruit.Adafruit_PWM_Servo_Driver(0x40, debug=True)
-    self.pwm.setPWMFreq(60)                        # Set frequency to 60 Hz
+    self.pwm.setPWMFreq(1700)                        # Set max frequency to (~1,6kHz)
   
   def process_message(self, message):
     command = sensationprotocol.Command()
