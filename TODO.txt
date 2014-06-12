@@ -1,20 +1,27 @@
+Check max output frequency -> enough for motor?
+connection error reporting (callback/delegate) (and add SHA1 to last DONE comment)
+automatic platine layouting..
+  - Ask Boris
+  - http://smart-prototyping.com/PCB-Prototyping.html
+
+rename Command to Sensation (proto & py)
 find way to generate c# classes from .proto files - see TODO below (should work under windows)
 multiple types of messages
   - all to 0
   - frequency?
-  - rename Command
-chain boards
-better unity editor (KISS, but Array of Objects where one can select region and index for each)
-  - actually every Probe also needs a position & orientation
-  - Probe
-    - position
-    - orientation
-    - draws ray in editor
-    - reach (distance)
-    - animation curve (scaling)
-    - bool inverted
-actually drive actor
+actually drive vibration motor
+chain boards (order them first...)
+"reset" all actors while no client is connected - and set all to 0 on connect
 
+
+Kinect
+  http://structure.io/openni
+  http://rfilkov.com/2013/12/16/kinectps-with-openni-2/
+  http://zigfu.com/en/zdk/overview/ ($200)
+Wiimote
+  http://wiki.unity3d.com/index.php?title=UniWii
+Ocolus
+  http://paddytherabbit.com/unity3d-oculus-rift-plugin-setup/
 
 
 
@@ -41,7 +48,7 @@ DONE
   - restore: `gzip -dc /Volumes/Macintosh\ HD/RaspberryPi/sensationdriver_0X_.img.gz | sudo dd bs=1m of=/dev/rdisk?`
 
 py: basic server & client: transmit multiple messages from c2s (da2b149)
-proto: DL v2.5
+proto: DL v2.5 (https://code.google.com/p/protobuf/downloads/list)
 proto: install: ./configure, make, make check, make install (README.txt)
 π: Install pip (`curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py | sudo python`)
 py: requirements.txt to add protobuf dependency (`pip install -r requirements.txt` + sudo@π)
@@ -56,18 +63,32 @@ unity: add unity version of protobuf-net.dll to project (check source for exampl
   - TODO: test ProtoGen (Windows only)
 unity: send protobuf message from unity to π (37bf2ae)
 unity: send message each update with intensity coupled to distance (1d58603)
+unity: backport ConcurrentQueue from current Mono version (https://github.com/mono/mono/) to work with Unity
+unity: implemented probe (with custom editor) and client (http://www.albahari.com/threading/ & http://csharpindepth.com/articles/general/singleton.aspx)
 
 
 Outline
+Introduction
+  haptic vs tactile
 Motivation
 Others
   [Transfer list from collected links]
+Actors
+  Vibration
+    Nerves
+    Placement -> see accupuncture points?
+  EMS/TENS (TENS is for pain relieve)
+    Musscles
+      3 types (http://www.mhhe.com/biosci/genbio/virtual_labs_2K8/labs/BL_13/index.html)
+    Placement (http://commons.wikimedia.org/wiki/Transkutane_elektrische_Nervenstimulation?uselang=de)
 Hardware choices
   Raspberry Pi
   I2C Bus
-  Extension Board (16x12 Bit PWM http://www.adafruit.com/products/815 + PCA9685 datasheet)
+  Extension Board (16x12 Bit PWM http://www.adafruit.com/products/815 + highlightings in PCA9685 datasheet)
     - PWM must be set 8 LSBits + 4 MSBits separately
+    - extra transistor to decouple chip from current drawn by actors
 Software choices
+  Unity3D
   Protobuf
     Overview http://talks.spline.de/slides/protobuf.pdf
     Why? (alt. HTTP & JSON-POST)
@@ -75,7 +96,28 @@ Software choices
       - pretty much every language
     protobuf-net
       - comes with precompiled Unity3D DLL
+Implementation
   Protocol
     4 byte integer message size (big endian)
     Command message (just plenty of them)
+  Driver
   Unity3D
+    Client
+      - singleton (http://csharpindepth.com/articles/general/singleton.aspx - version 4)
+      - SendSensationAsync adds to ConcurrentQueue
+      - separate thread sends items in queue (Transmit()->ProcessingLoop() method)
+        - background thread to not keep the application running on exit
+        - started by Connect()
+        - Join()ed by Disconnect()
+        - consumer-prodcer-pattern? implemented using an EventWaitHandle
+    Probe
+      - component (MonoBehaviour) to be attachable to any object
+      - casts ray in direction (object space), with max distance
+        - custom unity editor script for easy manipulation
+      - intensity curve (0-1, min to max reach)
+      - different out of reach modes
+      - update modes (continuously or only when intensity changed)
+      - sends sensation to driver via Client
+    Hub
+      - convenience for client settings through Unity-Editor
+      - performs connect & disconnect

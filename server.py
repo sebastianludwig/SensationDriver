@@ -3,10 +3,9 @@
 import os
 
 def is_raspberry():
-  os.popen('uname').read() == 'Linux\n'
+  return os.popen('uname').read() == 'Linux\n'
 
 import socket
-
 import sensationserver
 
 if is_raspberry():
