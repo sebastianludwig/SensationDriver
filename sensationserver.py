@@ -5,6 +5,8 @@ class SensationServer:
   def __init__(self):
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.handler = None
+    self.on_client_connect = None
+    self.on_client_disconnect = None
   
   def listen(self, address, port):
     self.socket.bind((address, port))
@@ -24,7 +26,7 @@ class SensationServer:
         
         # process the buffer
         while True:
-          # message_size to parse
+          # message size to parse
           if message_size == None and len(buffer) >= 4:
             message_size = int(struct.unpack('!i', buffer[:4])[0])
             buffer = buffer[4:]
@@ -50,7 +52,9 @@ class SensationServer:
         print 'waiting for a connection'
         client_socket, client_address = self.socket.accept()
 
+        if self.on_client_connect: self.on_client_connect()
         self.handle_client(client_socket, client_address)
+        if self.on_client_disconnect: self.on_client_disconnect()
         
     except KeyboardInterrupt:
       print "^C detected" 

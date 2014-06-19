@@ -8,15 +8,22 @@ def is_raspberry():
 import socket
 import sensationserver
 
+server = sensationserver.SensationServer()
+
 if is_raspberry():
   import messagehandler
-  handler = messagehandler.MessageHandler()
+  import gpio
+  
+  reset_pin = gpio.GPIOOutput(17)
+  reset_pin.high
+
+  server.handler = messagehandler.MessageHandler()
+  # server.on_client_connect = reset_pin.low
+  # server.on_client_disconnect = reset_pin.high
 else:
   import messagelogger
-  handler = messagelogger.MessageLogger()
+  server.handler = messagelogger.MessageLogger()
 
 
-server = sensationserver.SensationServer()
-server.handler = handler
 server.listen('', 10000)
 server.loop()
