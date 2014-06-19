@@ -1,3 +1,18 @@
+Jan
+  - Server-Verbindung (GND, V+, Signal±?)
+  - Common ground
+Zu Bodystreet gehen
+  Maria-Louisen-Strasse 63
+  22301 Hamburg
+Eisenkern Conrad 534439
+Boris
+  - EMS
+    -> Thema passt nimmer?
+  - Anemeldung per Post zu ihm?
+Immersion/Sehen&Fühlen-Mind tricks
+  - Rollercoaster-Russe
+  - Trennwand+Pinsel auf Finger+Hammer
+  - Manekin (Schaufensterpuppe) + Kamera = Out of body experience/Frau vs Mann/Messer
 Check max output frequency -> enough for motor?
 connection error reporting (callback/delegate) (and add SHA1 to last DONE comment)
 automatic platine layouting..
@@ -64,7 +79,7 @@ unity: add unity version of protobuf-net.dll to project (check source for exampl
 unity: send protobuf message from unity to π (37bf2ae)
 unity: send message each update with intensity coupled to distance (1d58603)
 unity: backport ConcurrentQueue from current Mono version (https://github.com/mono/mono/) to work with Unity
-unity: implemented probe (with custom editor) and client (http://www.albahari.com/threading/ & http://csharpindepth.com/articles/general/singleton.aspx)
+unity: implemented probe (with custom editor) and client (http://www.albahari.com/threading/ & http://csharpindepth.com/articles/general/singleton.aspx) (f9cbe1d)
 
 
 Outline
@@ -85,6 +100,7 @@ Hardware choices
   Raspberry Pi
   I2C Bus
   Extension Board (16x12 Bit PWM http://www.adafruit.com/products/815 + highlightings in PCA9685 datasheet)
+    - Max output frequency 1,6kHz -> PWM smoothing done by motor..?
     - PWM must be set 8 LSBits + 4 MSBits separately
     - extra transistor to decouple chip from current drawn by actors
 Software choices

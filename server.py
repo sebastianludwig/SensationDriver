@@ -10,11 +10,13 @@ import sensationserver
 
 if is_raspberry():
   import messagehandler
+  handler = messagehandler.MessageHandler()
 else:
-  import messagelogger as messagehandler
+  import messagelogger
+  handler = messagelogger.MessageLogger()
 
 
 server = sensationserver.SensationServer()
-server.handler = messagehandler.MessageHandler()
+server.handler = handler
 server.listen('', 10000)
 server.loop()

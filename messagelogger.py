@@ -1,6 +1,6 @@
 import sensationprotocol_pb2 as sensationprotocol
 
-class MessageHandler:
+class MessageLogger:
   def __init__(self):
     pass
   
