@@ -2,9 +2,10 @@ import RPi.GPIO as GPIO
 
 class GPIOOutput:
   def __init__(self, pin):
+    self.pin = pin
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(pin, GPIO.OUT)
-    self.pin = pin
+    self.low()
 
   def high(self):
     GPIO.output(self.pin, GPIO.HIGH)
