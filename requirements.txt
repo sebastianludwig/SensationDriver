@@ -3,3 +3,4 @@
 
 protobuf>=2.5.0
 # RPi.GPIO>=0.5.4 # only working on Raspberry
+PyYAML>=3.09

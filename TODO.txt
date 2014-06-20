@@ -1,6 +1,3 @@
-Jan
-  - Server-Verbindung (GND, V+, Signal±?)
-  - Common ground
 Zu Bodystreet gehen
   Maria-Louisen-Strasse 63
   22301 Hamburg
@@ -9,10 +6,12 @@ Boris
   - EMS
     -> Thema passt nimmer?
   - Anemeldung per Post zu ihm?
+  - iBook?
 Immersion/Sehen&Fühlen-Mind tricks
   - Rollercoaster-Russe
   - Trennwand+Pinsel auf Finger+Hammer
   - Manekin (Schaufensterpuppe) + Kamera = Out of body experience/Frau vs Mann/Messer
+actually drive vibration motor
 Check max output frequency -> enough for motor?
 connection error reporting (callback/delegate) (and add SHA1 to last DONE comment)
 automatic platine layouting..
@@ -24,8 +23,7 @@ find way to generate c# classes from .proto files - see TODO below (should work 
 multiple types of messages
   - all to 0
   - frequency?
-actually drive vibration motor
-chain boards (order them first...)
+chain boards
 "reset" all actors while no client is connected - and set all to 0 on connect
 
 
@@ -72,6 +70,10 @@ py: send and receive proto command message (a9f20e9)
 py: Add Adafruit PWM driver library (https://learn.adafruit.com/adafruit-16-channel-servo-driver-with-raspberry-pi/library-reference) (64980c0)
 π: Sync project files `rsync -ar -e "ssh -l pi" --exclude 'lib' --exclude 'include' --exclude='.*' ~/projects/SensationDriver/ sensationdriver.local:/home/pi/projects/SensationDriver`
 py: send command from mac client to π server (bcf0add)
+py: pulling extension board reset high, while no client is connected (5219d32)
+
+π: run sensation server as a deamon (http://blog.scphillips.com/2013/07/getting-a-python-script-to-run-in-the-background-as-a-service-on-boot/) (e4903e5)
+π: install rake (`sudo gem install rake`)
 
 unity: add unity version of protobuf-net.dll to project (check source for examples!)
 [unity: write equivalent of command definition in C#] (https://code.google.com/p/protobuf-net/wiki/GettingStarted)
@@ -81,6 +83,8 @@ unity: send message each update with intensity coupled to distance (1d58603)
 unity: backport ConcurrentQueue from current Mono version (https://github.com/mono/mono/) to work with Unity
 unity: implemented probe (with custom editor) and client (http://www.albahari.com/threading/ & http://csharpindepth.com/articles/general/singleton.aspx) (f9cbe1d)
 
+
+Glossar
 
 Outline
 Introduction

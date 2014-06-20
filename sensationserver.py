@@ -1,10 +1,12 @@
 import socket
 import struct
+import logging
 
 class SensationServer:
-  def __init__(self):
-    self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  def __init__(self, logger = None):
+    self.logger = logger if logger is not None else logging.getLogger('root')
     self.handler = None
+    self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.on_client_connect = None
     self.on_client_disconnect = None
   
@@ -13,7 +15,7 @@ class SensationServer:
     self.socket.listen(0)
   
   def handle_client(self, client_socket, client_address):
-    print 'connection from', client_address
+    self.logger.info('connection from %s', client_address)
     try:
       buffer = ''
       message_size = None
@@ -49,7 +51,7 @@ class SensationServer:
       
       while True:
         # Wait for a connection
-        print 'waiting for a connection'
+        self.logger.info('waiting for a connection')
         client_socket, client_address = self.socket.accept()
 
         if self.on_client_connect: self.on_client_connect()
@@ -57,8 +59,8 @@ class SensationServer:
         if self.on_client_disconnect: self.on_client_disconnect()
         
     except KeyboardInterrupt:
-      print "^C detected" 
+      self.logger.info("^C detected")
       pass 
     finally: 
-      print "closing server.."
+      self.logger.info("closing server..")
       self.socket.close()
