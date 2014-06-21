@@ -46,6 +46,16 @@ namespace :remote do
         # TODO implement retry
     end
 
+    desc "Reboots the Raspberry"
+    task :reboot do
+        `ssh #{PI_USER}@#{PI_HOSTNAME} 'sudo reboot'`
+    end
+
+    desc "Shuts the Raspberry down"
+    task :shutdown do
+        `ssh #{PI_USER}@#{PI_HOSTNAME} 'sudo shutdown -h now'`
+    end
+
     namespace :server do
         desc "Starts the sensation server daemon"
         task :start do
