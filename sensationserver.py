@@ -59,6 +59,7 @@ class SensationServer:
     except KeyboardInterrupt:
       self.logger.info("^C detected")
       pass 
-    finally: 
+    finally:
       self.logger.info("closing server..")
+      self.handler.on_server_shutdown()
       self.socket.close()

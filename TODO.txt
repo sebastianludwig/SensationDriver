@@ -77,7 +77,8 @@ py: send and receive proto command message (a9f20e9)
 py: Add Adafruit PWM driver library (https://learn.adafruit.com/adafruit-16-channel-servo-driver-with-raspberry-pi/library-reference) (64980c0)
 π: Sync project files `rsync -ar -e "ssh -l pi" --exclude 'lib' --exclude 'include' --exclude='.*' ~/projects/SensationDriver/ sensationdriver.local:/home/pi/projects/SensationDriver`
 py: send command from mac client to π server (bcf0add)
-py: pulling extension board reset high, while no client is connected (5219d32)
+py: driver for every region (53290b4)
+py: set all PWM to 0 on connect and disconnect (1619bbd)
 
 π: run sensation server as a deamon (http://blog.scphillips.com/2013/07/getting-a-python-script-to-run-in-the-background-as-a-service-on-boot/) (e4903e5)
 π: install rake (`sudo gem install rake`)

@@ -36,6 +36,10 @@ class MessageHandler:
     # for driver in self.drivers.itervalues():
     #   driver.setAllPWM(0, 0)
     pass
+
+  def on_server_shutdown(self):
+    for driver in self.drivers.itervalues():
+      driver.setAllPWM(0, 0)
   
   def process_message(self, message):
     command = sensationprotocol.Command()

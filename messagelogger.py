@@ -11,6 +11,9 @@ class MessageLogger:
   def on_client_disconnected(self):
     pass
 
+  def on_server_shutdown(self):
+    pass
+
   def process_message(self, message):
     command = sensationprotocol.Command()
     command.ParseFromString(message)
