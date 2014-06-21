@@ -2,6 +2,10 @@ Zu Bodystreet gehen
   Maria-Louisen-Strasse 63
   22301 Hamburg
 Eisenkern Conrad 534439
+Speed optimizations
+  - Check for delays (Unity, network, drivers)
+  - Fast mode i2c
+  - different smbus implementation (https://github.com/bivab/smbus-cffi/issues/1)
 Boris
   - EMS
     -> Thema passt nimmer?
@@ -11,6 +15,7 @@ Immersion/Sehen&Fühlen-Mind tricks
   - Rollercoaster-Russe
   - Trennwand+Pinsel auf Finger+Hammer
   - Manekin (Schaufensterpuppe) + Kamera = Out of body experience/Frau vs Mann/Messer
+Actor intensity: very strong at first, then dampen -> flight simulator (ask Udo)
 actually drive vibration motor
 Check max output frequency -> enough for motor?
 connection error reporting (callback/delegate) (and add SHA1 to last DONE comment)
