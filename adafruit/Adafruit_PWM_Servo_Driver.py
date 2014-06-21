@@ -77,14 +77,14 @@ class Adafruit_PWM_Servo_Driver:
     if (self.debug):
       print "Final pre-scale: %d" % prescale
 
-    oldmode = self.i2c.readU8(self.__MODE1);
-    newmode = (oldmode & 0x7F) | 0x10             # sleep (and preparation for restart)
-    self.i2c.write8(self.__MODE1, newmode)        # go to sleep
+    oldmode = self.i2c.readU8(self.__MODE1)
+    newmode = (oldmode & 0x7F) | self.__SLEEP                 # sleep (and preparation for restart)
+    self.i2c.write8(self.__MODE1, newmode)                    # go to sleep
     self.i2c.write8(self.__PRESCALE, prescale)
     self.i2c.write8(self.__MODE1, oldmode)
     # restart (datasheet section 7.3.1.1)
-    time.sleep(0.005)
-    self.i2c.write8(self.__MODE1, oldmode | 0x80)
+    time.sleep(0.005)                                         # wait for oscillator
+    self.i2c.write8(self.__MODE1, oldmode | self.__RESTART)
 
   def setPWM(self, channel, on, off):
     "Sets a single PWM channel"
