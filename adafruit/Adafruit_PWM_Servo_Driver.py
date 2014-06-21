@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import logging
 import time
 import math
 from Adafruit_I2C import Adafruit_I2C
@@ -39,13 +40,14 @@ class Adafruit_PWM_Servo_Driver:
     "Sends a software reset (SWRST) command to all the servo drivers on the bus"
     cls.general_call_i2c.writeRaw8(0x06)        # SWRST
 
-  def __init__(self, address=0x40, debug=False):
-    self.i2c = Adafruit_I2C(address)
+  def __init__(self, address=0x40, debug=False, logger=None):
+    self.logger = logger if logger is not None else logging.getLogger('root')
+    self.i2c = Adafruit_I2C(address, logger=self.logger)
     self.i2c.debug = debug
     self.address = address
     self.debug = debug
     if (self.debug):
-      print "Reseting PCA9685 MODE1 (without SLEEP) and MODE2"
+      self.logger.debug("Reseting PCA9685 MODE1 (without SLEEP) and MODE2")
     self.setAllPWM(0, 0)
     self.i2c.write8(self.__MODE2, self.__OUTDRV)
     self.i2c.write8(self.__MODE1, self.__ALLCALL)
@@ -71,11 +73,11 @@ class Adafruit_PWM_Servo_Driver:
     prescaleval /= float(freq)
     prescaleval -= 1.0
     if (self.debug):
-      print "Setting PWM frequency to %d Hz" % freq
-      print "Estimated pre-scale: %.2f" % prescaleval
+      self.logger.debug("Setting PWM frequency to %d Hz", freq)
+      self.logger.debug("Estimated pre-scale: %.2f", prescaleval)
     prescale = int(prescaleval + 0.5)
     if (self.debug):
-      print "Final pre-scale: %d" % prescale
+      self.logger.debug("Final pre-scale: %d", prescale)
 
     oldmode = self.i2c.readU8(self.__MODE1)
     newmode = (oldmode & 0x7F) | self.__SLEEP                 # sleep (and preparation for restart)

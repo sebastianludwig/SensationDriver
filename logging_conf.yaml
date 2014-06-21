@@ -15,7 +15,7 @@ handlers:
     filename: 'server_log.log'
 loggers:
   default:
-    level: DEBUG
+    level: INFO
     handlers: [console, file]
     propagate: no
 root:

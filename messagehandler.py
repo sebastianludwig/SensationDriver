@@ -22,7 +22,7 @@ class MessageHandler:
         self.logger.warning("No driver found for at address 0x%02X for region %d", address, region)
         continue
 
-      driver = adafruit.Adafruit_PWM_Servo_Driver(address, debug=True)
+      driver = adafruit.Adafruit_PWM_Servo_Driver(address, debug = True, logger = self.logger)
       # TODO use ALLCALL address
       driver.setPWMFreq(1700)                        # Set max frequency to (~1,6kHz)
       self.drivers[region] = driver
