@@ -9,9 +9,9 @@ client.connect('sensationdriver.local', 10000)
 
 
 command = sensationprotocol.Command()
-command.region = sensationprotocol.Command.LEFT_HAND
-command.actor_index = 0
-command.intensity = float(sys.argv[1])
+command.region = int(sys.argv[1])
+command.actor_index = int(sys.argv[2])
+command.intensity = float(sys.argv[3])
 
 
 client.send(command.SerializeToString())
