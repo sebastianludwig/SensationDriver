@@ -2,12 +2,6 @@ import logging
 import sensationprotocol_pb2 as sensationprotocol
 import adafruit
 
-# TODO
-# probe i2c for drivers
-# have dictionary that maps from REGION to driver
-# rename to ClientHandler
-# add on_client_connect and _disconnect and call them in sensationserver instead of the callbacks
-# set all PWM for all drivers to 0 on connect and disconnect
 class MessageHandler:
   def __init__(self, logger = None):
     self.logger = logger if logger is not None else logging.getLogger('root')
@@ -33,6 +27,15 @@ class MessageHandler:
       driver.setPWMFreq(1700)                        # Set max frequency to (~1,6kHz)
       self.drivers[region] = driver
 
+  def on_client_connected(self):
+    for driver in self.drivers.itervalues():
+      driver.setAllPWM(0, 0)
+
+  def on_client_disconnected(self):
+    # TODO enable - disabled for easier debugging
+    # for driver in self.drivers.itervalues():
+    #   driver.setAllPWM(0, 0)
+    pass
   
   def process_message(self, message):
     command = sensationprotocol.Command()

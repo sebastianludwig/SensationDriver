@@ -7,8 +7,6 @@ class SensationServer:
     self.logger = logger if logger is not None else logging.getLogger('root')
     self.handler = None
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self.on_client_connect = None
-    self.on_client_disconnect = None
   
   def listen(self, address, port):
     self.socket.bind((address, port))
@@ -54,9 +52,9 @@ class SensationServer:
         self.logger.info('waiting for a connection')
         client_socket, client_address = self.socket.accept()
 
-        if self.on_client_connect: self.on_client_connect()
+        self.handler.on_client_connected()
         self.handle_client(client_socket, client_address)
-        if self.on_client_disconnect: self.on_client_disconnect()
+        self.handler.on_client_disconnected()
         
     except KeyboardInterrupt:
       self.logger.info("^C detected")

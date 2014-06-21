@@ -6,6 +6,8 @@ Speed optimizations
   - Check for delays (Unity, network, drivers)
   - Fast mode i2c
   - different smbus implementation (https://github.com/bivab/smbus-cffi/issues/1)
+Improvements
+  - get ALLCALLADDR working (derzeit nicht zuverlässig - vllt mit anderer smbus-Implementierung?)
 Boris
   - EMS
     -> Thema passt nimmer?

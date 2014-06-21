@@ -23,14 +23,8 @@ server = sensationserver.SensationServer(logger)
 
 if is_raspberry():
   import messagehandler
-  import gpio
-
-  reset_pin = gpio.GPIOOutput(17)
-  reset_pin.high
 
   server.handler = messagehandler.MessageHandler(logger)
-  server.on_client_connect = reset_pin.low
-  server.on_client_disconnect = reset_pin.high
 else:
   import messagelogger
   server.handler = messagelogger.MessageLogger()
