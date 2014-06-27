@@ -47,6 +47,12 @@ end
 desc "Copies the files, restarts the server and tails the log"
 task :deploy => ['remote:copy', 'remote:server:restart', 'remote:log:tail']
 
+desc "Compiles the protobuf protocol definitions into python files"
+task :compile do
+    filenames = Dir.glob(sibling_path(['protocol', '*.proto']))
+    puts `protoc --proto_path='#{sibling_path('protocol')}' --python_out='#{File.dirname(__FILE__)}' #{filenames.join(' ')}`
+end
+
 namespace :dependencies do
     desc "Install python package dependencies through pip"
     task :install do
