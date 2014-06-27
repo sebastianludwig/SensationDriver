@@ -1,3 +1,5 @@
+require 'time'
+
 PI_HOSTNAME = "sensationdriver.local"
 PI_USER = 'pi'
 SERVER_LOG_NAME = 'server_log.log'
@@ -27,7 +29,8 @@ end
 
 def ssh_command(command = '')
     ssh_command = "ssh #{PI_USER}@#{PI_HOSTNAME}"
-    ssh_command += " '#{command}'" unless command.empty?
+    ssh_command += " '#{command}'" if command and !command.empty?
+    ssh_command
 end
 
 def ssh_exec(command)
@@ -119,5 +122,27 @@ namespace :log do
     desc "Empties the logfile"
     task :clean do
         `cat /dev/null > #{sibling_path(SERVER_LOG_NAME)}`
+    end
+end
+
+namespace :backup do
+    desc "Creates a gzipped backup of the SD card. Accepts optional filname addition parameters"
+    task :create do |t, args|
+        puts `diskutil list`
+        puts "\nEnter disk number: [2..n]"
+        disk_number = STDIN.gets.strip.to_i
+        raise "Disk number below 2 - probably wrong.." if disk_number < 2
+
+        puts `diskutil unmountDisk /dev/disk#{disk_number}`
+
+        filename = ['sensationdriver', Time.now.strftime('%Y%m%d_%H%M')] + args.extras
+        output_path = sibling_path(filename.join('_').gsub(' ', '_') + '.img.gz')
+
+        puts "Creating backup #{File.basename(output_path)} - this may take a while.. c[]"
+        puts `sudo dd bs=1m if=/dev/rdisk#{disk_number} | gzip > '#{output_path}'`
+
+        puts "Finished: #{File.basename(output_path)} (#{'%.2f' % (File.size(output_path) / (1000.0 ** 3))} GB) - open in Finder? [y/n]"
+        answer = STDIN.gets.strip
+        `open #{File.dirname(output_path)}` if answer == 'y'
     end
 end
