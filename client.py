@@ -8,12 +8,12 @@ client = democlient.DemoClient()
 client.connect('sensationdriver.local', 10000)
 
 
-command = sensationprotocol.Command()
-command.region = int(sys.argv[1])
-command.actor_index = int(sys.argv[2])
-command.intensity = float(sys.argv[3])
+sensation = sensationprotocol.Sensation()
+sensation.region = int(sys.argv[1])
+sensation.actor_index = int(sys.argv[2])
+sensation.intensity = float(sys.argv[3])
 
 
-client.send(command.SerializeToString())
+client.send(sensation.SerializeToString())
 
 client.disconnect()

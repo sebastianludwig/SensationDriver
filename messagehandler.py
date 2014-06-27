@@ -12,9 +12,9 @@ class MessageHandler:
     self.drivers = { }
 
     mapping = {
-      sensationprotocol.Command.LEFT_HAND:      0x40,
-      sensationprotocol.Command.LEFT_FOREARM:   0x41,
-      sensationprotocol.Command.LEFT_UPPER_ARM: 0x42
+      sensationprotocol.Sensation.LEFT_HAND:      0x40,
+      sensationprotocol.Sensation.LEFT_FOREARM:   0x41,
+      sensationprotocol.Sensation.LEFT_UPPER_ARM: 0x42
     }
 
     for (region, address) in mapping.iteritems():
@@ -42,11 +42,11 @@ class MessageHandler:
       driver.setAllPWM(0, 0)
   
   def process_message(self, message):
-    command = sensationprotocol.Command()
-    command.ParseFromString(message)
+    sensation = sensationprotocol.Sensation()
+    sensation.ParseFromString(message)
     
-    self.logger.debug('received command:\n--\n%s--', command)
+    self.logger.debug('received sensation:\n--\n%s--', sensation)
     
-    if command.region in self.drivers:
-      self.drivers[command.region].setPWM(command.actor_index, 0, int(command.intensity * 4096))
+    if sensation.region in self.drivers:
+      self.drivers[sensation.region].setPWM(sensation.actor_index, 0, int(sensation.intensity * 4096))
 

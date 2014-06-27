@@ -15,7 +15,7 @@ class MessageLogger:
     pass
 
   def process_message(self, message):
-    command = sensationprotocol.Command()
-    command.ParseFromString(message)
+    sensation = sensationprotocol.Sensation()
+    sensation.ParseFromString(message)
     
-    self.logger.info('received command:\n--\n%s--', command)
+    self.logger.info('received sensation:\n--\n%s--', sensation)

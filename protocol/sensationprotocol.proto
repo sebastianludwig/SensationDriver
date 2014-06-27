@@ -1,6 +1,6 @@
 package sensationdriver;
 
-message Command {
+message Sensation {
   enum Region {
     LEFT_HAND = 0;
     LEFT_FOREARM = 1;

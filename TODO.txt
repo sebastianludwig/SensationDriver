@@ -2,10 +2,6 @@ Zu Bodystreet gehen
   Maria-Louisen-Strasse 63
   22301 Hamburg
 Eisenkern Conrad 534439
-Speed optimizations
-  - Check for delays (Unity, network, drivers)
-  - Fast mode i2c
-  - different smbus implementation (https://github.com/bivab/smbus-cffi/issues/1)
 Improvements
   - get ALLCALLADDR working (derzeit nicht zuverlässig - vllt mit anderer smbus-Implementierung?)
 Boris
@@ -13,25 +9,17 @@ Boris
     -> Thema passt nimmer?
   - Anemeldung per Post zu ihm?
   - iBook?
-Immersion/Sehen&Fühlen-Mind tricks
-  - Rollercoaster-Russe
-  - Trennwand+Pinsel auf Finger+Hammer
-  - Manekin (Schaufensterpuppe) + Kamera = Out of body experience/Frau vs Mann/Messer
+  - automatic platine layouting (http://smart-prototyping.com/PCB-Prototyping.html)
 Actor intensity: very strong at first, then dampen -> flight simulator (ask Udo)
-actually drive vibration motor
-Check max output frequency -> enough for motor?
-connection error reporting (callback/delegate) (and add SHA1 to last DONE comment)
-automatic platine layouting..
-  - Ask Boris
-  - http://smart-prototyping.com/PCB-Prototyping.html
 
-rename Command to Sensation (proto & py)
-find way to generate c# classes from .proto files - see TODO below (should work under windows)
+Speed optimizations
+  - Check for delays (Unity, network, drivers)
+  - Fast mode i2c
+  - different smbus implementation (https://github.com/bivab/smbus-cffi/issues/1)
 multiple types of messages
   - all to 0
   - frequency?
-chain boards
-"reset" all actors while no client is connected - and set all to 0 on connect
+find way to generate c# classes from .proto files - see TODO below (should work under windows)
 
 
 Kinect
@@ -83,13 +71,16 @@ py: set all PWM to 0 on connect and disconnect (1619bbd)
 π: run sensation server as a deamon (http://blog.scphillips.com/2013/07/getting-a-python-script-to-run-in-the-background-as-a-service-on-boot/) (e4903e5)
 π: install rake (`sudo gem install rake`)
 
-unity: add unity version of protobuf-net.dll to project (check source for examples!)
+hw: set up driver circuit
+
+unity: add unity version of protobuf-net.dll to project (check source for examples!) (https://code.google.com/p/protobuf-net/)
 [unity: write equivalent of command definition in C#] (https://code.google.com/p/protobuf-net/wiki/GettingStarted)
   - TODO: test ProtoGen (Windows only)
 unity: send protobuf message from unity to π (37bf2ae)
 unity: send message each update with intensity coupled to distance (1d58603)
-unity: backport ConcurrentQueue from current Mono version (https://github.com/mono/mono/) to work with Unity
+unity: backport ConcurrentQueue from current Mono version (https://github.com/mono/mono/) to work with Unity (c991b45)
 unity: implemented probe (with custom editor) and client (http://www.albahari.com/threading/ & http://csharpindepth.com/articles/general/singleton.aspx) (f9cbe1d)
+unity: connection error reporting to delegates (77cd4f4)
 
 
 Glossar
@@ -100,6 +91,8 @@ Introduction
 Motivation
 Others
   [Transfer list from collected links]
+  Body illusion
+    -> empathy
 Actors
   Vibration
     Nerves
