@@ -68,6 +68,21 @@ namespace :remote do
         exec(ssh_command)
     end
 
+    desc "Opens a remote desktop via VNC"
+    task :vnc do
+        backtick("open vnc://#{PI_HOSTNAME}:5901")
+    end
+
+    desc "Mounts the Raspberry user home directory as drive"
+    task :mount do
+        backtick("open afp://#{PI_USER}@#{PI_HOSTNAME}/Home\\ Directory")
+    end
+
+    desc "Unmounts the Raspberry user home directory"
+    task :unmount do
+        backtick("umount '/Volumes/Home Directory'") if `mount`.include? '/Volumes/Home Directory'
+    end
+
     desc "Copy project files to the Raspberry"
     task :copy do
         command = "rsync -ar -e \"ssh -l #{PI_USER}\" --exclude 'lib' --exclude 'include' --exclude='.*' --exclude '*.log' #{File.dirname(__FILE__)}/ #{PI_HOSTNAME}:#{remote_project_path}"
@@ -75,12 +90,12 @@ namespace :remote do
     end
 
     desc "Reboots the Raspberry"
-    task :reboot do
+    task :reboot => :unmount do
         ssh_exec("sudo reboot")
     end
 
     desc "Shuts the Raspberry down"
-    task :shutdown do
+    task :shutdown => :unmount do
         ssh_exec("sudo shutdown -h now")
     end
 
