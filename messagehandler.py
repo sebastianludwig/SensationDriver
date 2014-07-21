@@ -17,7 +17,7 @@ class MessageHandler:
       sensationprotocol.Sensation.LEFT_UPPER_ARM: 0x42
     }
 
-    for (region, address) in mapping.iteritems():
+    for (region, address) in mapping.items():
       if not adafruit.Adafruit_I2C.isDeviceAnswering(address):
         self.logger.warning("No driver found for at address 0x%02X for region %d", address, region)
         continue
@@ -28,7 +28,7 @@ class MessageHandler:
       self.drivers[region] = driver
 
   def on_client_connected(self):
-    for driver in self.drivers.itervalues():
+    for driver in self.drivers.values():
       driver.setAllPWM(0, 0)
 
   def on_client_disconnected(self):
@@ -38,7 +38,7 @@ class MessageHandler:
     pass
 
   def on_server_shutdown(self):
-    for driver in self.drivers.itervalues():
+    for driver in self.drivers.values():
       driver.setAllPWM(0, 0)
   
   def process_message(self, message):

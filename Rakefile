@@ -1,8 +1,11 @@
+#encoding: utf-8
+
 require 'time'
 
 PI_HOSTNAME = "sensationdriver.local"
 PI_USER = 'pi'
 SERVER_LOG_NAME = 'server_log.log'
+PYTHON = 'python3.4'
 
 def sibling_path(filename)
     File.join(File.dirname(__FILE__), filename)
@@ -39,7 +42,7 @@ end
 
 desc 'Starts the sensation server'
 task :server do
-    command = "bash -c '#{sibling_path('server.py')}'"
+    command = "bash -c '#{PYTHON} #{sibling_path('server.py')}'"
     command = "sudo " + command if is_raspberry?
     exec(command)
 end
@@ -56,7 +59,7 @@ end
 namespace :dependencies do
     desc "Install python package dependencies through pip"
     task :install do
-        command = "pip install -r #{sibling_path('requirements.txt')}"
+        command = "#{PYTHON} -m pip install -r #{sibling_path('requirements.txt')}"
         command = "sudo " + command if is_raspberry?
         puts `#{command}`
     end

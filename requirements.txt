@@ -1,6 +1,7 @@
+#encoding: utf-8
 # satify requirements by running
 # pip install -r requirements.txt
 
-protobuf>=2.5.0
-# RPi.GPIO>=0.5.4 # only working on Raspberry
+python3-protobuf>=2.5.0
+RPi.GPIO>=0.5.4 # only working on Raspberry
 PyYAML>=3.09

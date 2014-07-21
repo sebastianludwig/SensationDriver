@@ -33,7 +33,7 @@ class Adafruit_I2C:
     try:
       cls.bus.write_quick(address)
       return True
-    except IOError, err:
+    except IOError as err:
       return False
 
   def __init__(self, address, busnum=-1, debug=False, logger=None):
@@ -66,7 +66,7 @@ class Adafruit_I2C:
       self.bus.write_byte_data(self.address, reg, value)
       if self.debug:
         self.logger.debug("I2C: Wrote 0x%02X to register 0x%02X", value, reg)
-    except IOError, err:
+    except IOError as err:
       return self.errMsg()
 
   def write16(self, reg, value):
@@ -75,7 +75,7 @@ class Adafruit_I2C:
       self.bus.write_word_data(self.address, reg, value)
       if self.debug:
         self.logger.debug("I2C: Wrote 0x%02X to register pair 0x%02X,0x%02X", value, reg, reg+1)
-    except IOError, err:
+    except IOError as err:
       return self.errMsg()
 
   def writeRaw8(self, value):
@@ -84,7 +84,7 @@ class Adafruit_I2C:
       self.bus.write_byte(self.address, value)
       if self.debug:
         self.logger.debug("I2C: Wrote 0x%02X", value)
-    except IOError, err:
+    except IOError as err:
       return self.errMsg()
 
   def writeList(self, reg, list):
@@ -93,7 +93,7 @@ class Adafruit_I2C:
       if self.debug:
         self.logger.debug("I2C: Writing list to register 0x%02X:\n%s", reg, list)
       self.bus.write_i2c_block_data(self.address, reg, list)
-    except IOError, err:
+    except IOError as err:
       return self.errMsg()
 
   def readList(self, reg, length):
@@ -103,7 +103,7 @@ class Adafruit_I2C:
       if self.debug:
         self.logger.debug("I2C: Device 0x%02X returned the following from reg 0x%02X:\n%s", self.address, reg, results)
       return results
-    except IOError, err:
+    except IOError as err:
       return self.errMsg()
 
   def readU8(self, reg):
@@ -113,7 +113,7 @@ class Adafruit_I2C:
       if self.debug:
         self.logger.debug("I2C: Device 0x%02X returned 0x%02X from reg 0x%02X", self.address, result & 0xFF, reg)
       return result
-    except IOError, err:
+    except IOError as err:
       return self.errMsg()
 
   def readS8(self, reg):
@@ -124,7 +124,7 @@ class Adafruit_I2C:
       if self.debug:
         self.logger.debug("I2C: Device 0x%02X returned 0x%02X from reg 0x%02X", self.address, result & 0xFF, reg)
       return result
-    except IOError, err:
+    except IOError as err:
       return self.errMsg()
 
   def readU16(self, reg):
@@ -134,7 +134,7 @@ class Adafruit_I2C:
       if (self.debug):
         self.logger.debug("I2C: Device 0x%02X returned 0x%04X from reg 0x%02X", self.address, result & 0xFFFF, reg)
       return result
-    except IOError, err:
+    except IOError as err:
       return self.errMsg()
 
   def readS16(self, reg):
@@ -144,7 +144,7 @@ class Adafruit_I2C:
       if (self.debug):
         self.logger.debug("I2C: Device 0x%02X returned 0x%04X from reg 0x%02X", self.address, result & 0xFFFF, reg)
       return result
-    except IOError, err:
+    except IOError as err:
       return self.errMsg()
 
 Adafruit_I2C.bus = smbus.SMBus(Adafruit_I2C.getPiI2CBusNumber())
@@ -152,6 +152,6 @@ Adafruit_I2C.bus = smbus.SMBus(Adafruit_I2C.getPiI2CBusNumber())
 if __name__ == '__main__':
   try:
     bus = Adafruit_I2C(address=0)
-    print "Default I2C bus is accessible"
+    print("Default I2C bus is accessible")
   except:
-    print "Error accessing default I2C bus"
+    print("Error accessing default I2C bus")

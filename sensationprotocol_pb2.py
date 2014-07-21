@@ -89,8 +89,7 @@ _SENSATION.fields_by_name['region'].enum_type = _SENSATION_REGION
 _SENSATION_REGION.containing_type = _SENSATION;
 DESCRIPTOR.message_types_by_name['Sensation'] = _SENSATION
 
-class Sensation(_message.Message):
-  __metaclass__ = _reflection.GeneratedProtocolMessageType
+class Sensation(_message.Message, metaclass=_reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _SENSATION
 
   # @@protoc_insertion_point(class_scope:sensationdriver.Sensation)
