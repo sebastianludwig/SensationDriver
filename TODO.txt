@@ -1,14 +1,21 @@
-Zu Bodystreet gehen
-  Maria-Louisen-Strasse 63
-  22301 Hamburg
+Treiber von MessageHandler trennen
+  eigener loop -> Hardware und Netzwerk blocken sich nicht gegenseitig, max Frequenz der Hardware ausnutzen, keine unnötigen Updates, wenn zwei Netzwerk updates kommen, während HW-Update noch läuft
+    - vllt so auch 0.5->0.3-Anlaufproblem lösbar?
+  buffer mit copy on read, ggf mehr Metadaten speichern um zu wissen, was man aktualisieren muss (max. shift bei SPI - irrelevant...)
+Pattern-Designer sollte Patterns als Protobuf-Nachrichten persistieren
+  Animation curves mit Kontrollpunkten (Zeitpunkt, Tangente, Tangentenmodus)
+  Pattern zu Server übertragen, abspielbar machen mit Skalierungs-Faktor
+Dome thingie with paintball guns
 Eisenkern Conrad 534439
 Improvements
   - get ALLCALLADDR working (derzeit nicht zuverlässig - vllt mit anderer smbus-Implementierung?)
 Boris
   - EMS
-    -> Thema passt nimmer?
-  - Anemeldung per Post zu ihm?
-  - iBook?
+    -> Thema passt nimmer? haptisch vs taktil
+  - Wikipedia als Quelle (Technik-Kram)
+  - iBook? (Seitenränder, Literaturverzeichnis, Abbildungsverzeichnis, ...)
+  - Thematischer Umfang
+  - Geld für Hardware? Darf ich das dann trotzdem behalten?
   - automatic platine layouting (http://smart-prototyping.com/PCB-Prototyping.html)
 Actor intensity: very strong at first, then dampen -> flight simulator (ask Udo)
 
@@ -70,6 +77,11 @@ py: set all PWM to 0 on connect and disconnect (1619bbd)
 
 π: run sensation server as a deamon (http://blog.scphillips.com/2013/07/getting-a-python-script-to-run-in-the-background-as-a-service-on-boot/) (e4903e5)
 π: install rake (`sudo gem install rake`)
+π: Install netatalk to access the pi as network share: `sudo apt-get install netatalk` (http://raspberrypi.stackexchange.com/questions/8950/copy-files-from-osx-to-from-pi)
+
+π: install Python 3.4 (http://procrastinative.ninja/2014/07/20/install-python34-on-raspberry-pi/)
+π: Compile python-smbus for Python3 (http://procrastinative.ninja/2014/07/21/smbus-for-python34-on-raspberry/)
+py: convert code to Python3: `2to3 -w .` (d068484)
 
 hw: set up driver circuit
 
@@ -105,7 +117,7 @@ Hardware choices
   Raspberry Pi
   I2C Bus
   Extension Board (16x12 Bit PWM http://www.adafruit.com/products/815 + highlightings in PCA9685 datasheet)
-    - Max output frequency 1,6kHz -> PWM smoothing done by motor..?
+    - Max output frequency 1,6kHz -> PWM smoothing done by motor
     - PWM must be set 8 LSBits + 4 MSBits separately
     - extra transistor to decouple chip from current drawn by actors
 Software choices

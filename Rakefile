@@ -47,6 +47,17 @@ task :server do
     exec(command)
 end
 
+namespace :server do
+    desc "Sets up the necessary init.d scripts"
+    task :install do
+        raise "Only supported on Raspberry Pi" unless is_raspberry?
+        daemon_script = 'sensation_daemon.sh'
+        puts `sudo cp #{sibling_path(['bin', daemon_script])} /etc/init.d/#{daemon_script}`
+        puts `sudo chmod 755 /etc/init.d/#{daemon_script}`
+        puts `sudo update-rc.d #{daemon_script} defaults`
+    end
+end
+
 desc "Copies the files, restarts the server and tails the log"
 task :deploy => ['remote:copy', 'remote:server:restart', 'remote:log:tail']
 
@@ -105,22 +116,22 @@ namespace :remote do
     namespace :server do
         desc "Starts the sensation server daemon"
         task :start do
-            puts ssh_exec("sudo /etc/init.d/sensation.sh start")
+            puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh start")
         end
 
         desc "Checks the sensation server daemon status"
         task :status do
-            puts ssh_exec("sudo /etc/init.d/sensation.sh status")
+            puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh status")
         end
 
         desc "Stops the sensation server daemon"
         task :stop do
-            puts ssh_exec("sudo /etc/init.d/sensation.sh stop")
+            puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh stop")
         end
 
         desc "Restarts the sensation server daemon"
         task :restart do
-            puts ssh_exec("sudo /etc/init.d/sensation.sh restart")
+            puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh restart")
         end
     end
 
@@ -150,19 +161,19 @@ namespace :log do
 end
 
 namespace :backup do
-    desc "Creates a gzipped backup of the SD card. Accepts optional filname addition parameters"
+    desc 'Creates a gzipped backup of the SD card. Accepts optional filname addition parameters (rake "backup:create[param1, param2]")'
     task :create do |t, args|
         puts `diskutil list`
         puts "\nEnter disk number: [2..n]"
         disk_number = STDIN.gets.strip.to_i
         raise "Disk number below 2 - probably wrong.." if disk_number < 2
 
-        puts `diskutil unmountDisk /dev/disk#{disk_number}`
-
         filename = ['sensationdriver', Time.now.strftime('%Y%m%d_%H%M')] + args.extras
         output_path = sibling_path(filename.join('_').gsub(' ', '_') + '.img.gz')
 
-        puts "Creating backup #{File.basename(output_path)} - this may take a while.. c[]"
+        puts "Creating backup #{File.basename(output_path)} - this may take a while.. c[´]"
+
+        puts `diskutil unmountDisk /dev/disk#{disk_number}`
         puts `sudo dd bs=1m if=/dev/rdisk#{disk_number} | gzip > '#{output_path}'`
 
         puts "Finished: #{File.basename(output_path)} (#{'%.2f' % (File.size(output_path) / (1000.0 ** 3))} GB) - open in Finder? [y/n]"
