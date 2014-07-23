@@ -16,7 +16,7 @@
 # 3. Hook into startup (`sudo update-rc.d sensation_daemon.sh defaults`)
  
 # Change the next 2 lines to suit where you install your script and what you want to call it
-DAEMON=/home/pi/projects/SensationDriver/server.py
+DAEMON=/home/pi/projects/SensationDriver/bin/run-server.py
 DAEMON_NAME=sensation
  
 # This next line determines what user the script runs as.
