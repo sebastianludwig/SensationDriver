@@ -17,7 +17,6 @@
  
 # Change the next 2 lines to suit where you install your script and what you want to call it
 DAEMON=/home/pi/projects/SensationDriver/server.py
-# DAEMON=/home/pi/projects/SensationDriver/bin/env_test.sh
 DAEMON_NAME=sensation
  
 # This next line determines what user the script runs as.

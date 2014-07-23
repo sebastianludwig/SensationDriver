@@ -4,11 +4,11 @@ require 'time'
 
 PI_HOSTNAME = "sensationdriver.local"
 PI_USER = 'pi'
-SERVER_LOG_NAME = 'server_log.log'
+SERVER_LOG_PATH = File.join('log', 'server.log')
 PYTHON = 'python3.4'
 
-def sibling_path(filename)
-    File.join(File.dirname(__FILE__), filename)
+def sibling_path(*components)
+    File.join(File.dirname(__FILE__), components)
 end
 
 def remote_project_path
@@ -63,8 +63,8 @@ task :deploy => ['remote:copy', 'remote:server:restart', 'remote:log:tail']
 
 desc "Compiles the protobuf protocol definitions into python files"
 task :compile do
-    filenames = Dir.glob(sibling_path(['protocol', '*.proto']))
-    puts `protoc --proto_path='#{sibling_path('protocol')}' --python_out='#{File.dirname(__FILE__)}' #{filenames.join(' ')}`
+    filenames = Dir.glob(sibling_path('*.proto'))
+    puts `protoc --proto_path='#{File.dirname(__FILE__)}' --python_out='#{sibling_path('src', 'sensationdriver', 'protocol')}' #{filenames.join(' ')}`
 end
 
 namespace :dependencies do
@@ -99,7 +99,7 @@ namespace :remote do
 
     desc "Copy project files to the Raspberry"
     task :copy do
-        command = "rsync -ar -e \"ssh -l #{PI_USER}\" --exclude 'lib' --exclude 'include' --exclude='.*' --exclude '*.log' #{File.dirname(__FILE__)}/ #{PI_HOSTNAME}:#{remote_project_path}"
+        command = "rsync -ar -e \"ssh -l #{PI_USER}\" --delete --exclude '__pycache__/' --exclude 'lib' --exclude 'include' --exclude='.*' --exclude '*.log' #{File.dirname(__FILE__)}/ #{PI_HOSTNAME}:#{remote_project_path}"
         backtick(command)
     end
 
@@ -138,12 +138,12 @@ namespace :remote do
     namespace :log do
         desc "Tails the log on the Raspberry"
         task :tail do
-            exec(ssh_command("tail -f -n 10 #{File.join(remote_project_path, SERVER_LOG_NAME)}"));
+            exec(ssh_command("tail -f -n 10 #{File.join(remote_project_path, SERVER_LOG_PATH)}"));
         end
 
         desc "Empties the logfile on the Raspberry"
         task :clean do
-            ssh_exec("cat /dev/null > #{File.join(requirements, SERVER_LOG_NAME)}")
+            ssh_exec("cat /dev/null > #{File.join(requirements, SERVER_LOG_PATH)}")
         end
     end
 end
@@ -151,12 +151,12 @@ end
 namespace :log do
     desc "Tails the log"
     task :tail do
-        exec("tail -f -n 10 #{sibling_path(SERVER_LOG_NAME)}")
+        exec("tail -f -n 10 #{sibling_path(SERVER_LOG_PATH)}")
     end
 
     desc "Empties the logfile"
     task :clean do
-        `cat /dev/null > #{sibling_path(SERVER_LOG_NAME)}`
+        `cat /dev/null > #{sibling_path(SERVER_LOG_PATH)}`
     end
 end
 

@@ -83,6 +83,10 @@ py: set all PWM to 0 on connect and disconnect (1619bbd)
 π: Compile python-smbus for Python3 (http://procrastinative.ninja/2014/07/21/smbus-for-python34-on-raspberry/)
 py: convert code to Python3: `2to3 -w .` (d068484)
 
+proto: DL Python3 2.5.1 (https://github.com/GreatFruitOmsk/protobuf-py3)
+proto: install: brew install autoconf automake libtool, ./autogen.sh , ./configure, make, (sudo) make install
+py: make sure correct protobuf Python 3 library is installed (`(sudo) python3.4 -m pip uninstall python3-protobuf` & rake dependencies:install)
+
 hw: set up driver circuit
 
 unity: add unity version of protobuf-net.dll to project (check source for examples!) (https://code.google.com/p/protobuf-net/)

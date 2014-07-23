@@ -3,13 +3,14 @@
 import logging
 import time
 import math
-from .Adafruit_I2C import Adafruit_I2C
+from .wirebus import I2C
 
-# ============================================================================
-# Adafruit PCA9685 16-Channel PWM Servo Driver
-# ============================================================================
+# ===========================================================================
+# Based on https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code
+# Copyright (c) 2012-2013 Limor Fried, Kevin Townsend and Mikey Sklar for Adafruit Industries. All rights reserved.
+# ===========================================================================
 
-class Adafruit_PWM_Servo_Driver:
+class Driver(object):
   # Registers/etc.
   __MODE1              = 0x00
   __MODE2              = 0x01
@@ -33,7 +34,7 @@ class Adafruit_PWM_Servo_Driver:
   __INVRT              = 0x10
   __OUTDRV             = 0x04
 
-  general_call_i2c = Adafruit_I2C(0x00)
+  general_call_i2c = I2C(0x00)
 
   @classmethod
   def softwareReset(cls):
@@ -42,7 +43,7 @@ class Adafruit_PWM_Servo_Driver:
 
   def __init__(self, address=0x40, debug=False, logger=None):
     self.logger = logger if logger is not None else logging.getLogger('root')
-    self.i2c = Adafruit_I2C(address, logger=self.logger)
+    self.i2c = I2C(address, logger=self.logger)
     self.i2c.debug = debug
     self.address = address
     self.debug = debug

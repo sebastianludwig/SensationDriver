@@ -4,6 +4,29 @@
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
+import sys
+if sys.version_info >= (3,):
+  #some constants that are python2 only
+  unicode = str
+  long = int
+  range = range
+  unichr = chr
+  def b(s):
+    return s.encode("latin-1")
+  def u(s):
+    return s
+else:
+  #some constants that are python2 only
+  range = xrange
+  unicode = unicode
+  long = long
+  unichr = unichr
+  def b(s):
+    return s
+  # Workaround for standalone backslash
+  def u(s):
+    return unicode(s.replace(r'\\', r'\\\\'), "unicode_escape")
+
 from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
@@ -13,7 +36,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='sensationprotocol.proto',
   package='sensationdriver',
-  serialized_pb='\n\x17sensationprotocol.proto\x12\x0fsensationdriver\"\xa5\x01\n\tSensation\x12\x31\n\x06region\x18\x01 \x02(\x0e\x32!.sensationdriver.Sensation.Region\x12\x13\n\x0b\x61\x63tor_index\x18\x02 \x02(\x05\x12\x11\n\tintensity\x18\x03 \x02(\x02\"=\n\x06Region\x12\r\n\tLEFT_HAND\x10\x00\x12\x10\n\x0cLEFT_FOREARM\x10\x01\x12\x12\n\x0eLEFT_UPPER_ARM\x10\x02')
+  serialized_pb=b('\n\x17sensationprotocol.proto\x12\x0fsensationdriver\"\xa5\x01\n\tSensation\x12\x31\n\x06region\x18\x01 \x02(\x0e\x32!.sensationdriver.Sensation.Region\x12\x13\n\x0b\x61\x63tor_index\x18\x02 \x02(\x05\x12\x11\n\tintensity\x18\x03 \x02(\x02\"=\n\x06Region\x12\r\n\tLEFT_HAND\x10\x00\x12\x10\n\x0cLEFT_FOREARM\x10\x01\x12\x12\n\x0eLEFT_UPPER_ARM\x10\x02'))
 
 
 
@@ -89,10 +112,11 @@ _SENSATION.fields_by_name['region'].enum_type = _SENSATION_REGION
 _SENSATION_REGION.containing_type = _SENSATION;
 DESCRIPTOR.message_types_by_name['Sensation'] = _SENSATION
 
-class Sensation(_message.Message, metaclass=_reflection.GeneratedProtocolMessageType):
-  DESCRIPTOR = _SENSATION
-
-  # @@protoc_insertion_point(class_scope:sensationdriver.Sensation)
+Sensation = _reflection.GeneratedProtocolMessageType('Sensation', (_message.Message,),
+    {
+      'DESCRIPTOR': _SENSATION,
+      # @@protoc_insertion_point(class_scope:sensationdriver.Sensation)
+    })
 
 
 # @@protoc_insertion_point(module_scope)

@@ -2,7 +2,7 @@ import socket
 import struct
 import logging
 
-class SensationServer:
+class Server(object):
   def __init__(self, logger = None):
     self.logger = logger if logger is not None else logging.getLogger('root')
     self.handler = None
@@ -15,7 +15,7 @@ class SensationServer:
   def handle_client(self, client_socket, client_address):
     self.logger.info('connection from %s', client_address)
     try:
-      buffer = ''
+      buffer = b''
       message_size = None
       
       while True:

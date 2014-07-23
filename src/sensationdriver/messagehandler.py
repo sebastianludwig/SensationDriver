@@ -1,11 +1,12 @@
 import logging
-import sensationprotocol_pb2 as sensationprotocol
-import adafruit
+from adafruit import pca9685
+from adafruit import wirebus
+from .protocol import sensationprotocol_pb2 as sensationprotocol
 
 class MessageHandler:
   def __init__(self, logger = None):
     self.logger = logger if logger is not None else logging.getLogger('root')
-    adafruit.Adafruit_PWM_Servo_Driver.softwareReset()
+    pca9685.Driver.softwareReset()
     self.__prepare_drivers()
 
   def __prepare_drivers(self):
@@ -18,11 +19,11 @@ class MessageHandler:
     }
 
     for (region, address) in mapping.items():
-      if not adafruit.Adafruit_I2C.isDeviceAnswering(address):
+      if not wirebus.I2C.isDeviceAnswering(address):
         self.logger.warning("No driver found for at address 0x%02X for region %d", address, region)
         continue
 
-      driver = adafruit.Adafruit_PWM_Servo_Driver(address, debug = True, logger = self.logger)
+      driver = pca9685.Driver(address, debug = True, logger = self.logger)
       # TODO use ALLCALL address
       driver.setPWMFreq(1700)                        # Set max frequency to (~1,6kHz)
       self.drivers[region] = driver

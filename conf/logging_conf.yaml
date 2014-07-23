@@ -12,7 +12,7 @@ handlers:
     '()': __main__.file_logger
     level: DEBUG
     formatter: simple
-    filename: 'server_log.log'
+    filename: 'server.log'
 loggers:
   default:
     level: INFO

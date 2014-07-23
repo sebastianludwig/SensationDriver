@@ -2,6 +2,6 @@
 # satify requirements by running
 # pip install -r requirements.txt
 
-python3-protobuf>=2.5.0
+protobuf-py3>=2.5.1
 RPi.GPIO>=0.5.4 # only working on Raspberry
 PyYAML>=3.09

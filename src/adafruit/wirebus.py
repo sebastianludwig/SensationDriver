@@ -4,10 +4,11 @@ import logging
 import smbus
 
 # ===========================================================================
-# Adafruit_I2C Class
+# Based on https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code
+# Copyright (c) 2012-2013 Limor Fried, Kevin Townsend and Mikey Sklar for Adafruit Industries. All rights reserved.
 # ===========================================================================
 
-class Adafruit_I2C:
+class I2C(object):
 
   @staticmethod
   def getPiRevision():
@@ -22,10 +23,10 @@ class Adafruit_I2C:
     except:
       return 0
 
-  @staticmethod
-  def getPiI2CBusNumber():
+  @classmethod
+  def getPiI2CBusNumber(cls):
     # Gets the I2C bus number /dev/i2c#
-    return 1 if Adafruit_I2C.getPiRevision() > 1 else 0
+    return 1 if cls.getPiRevision() > 1 else 0
 
   @classmethod
   def isDeviceAnswering(cls, address):
@@ -43,7 +44,7 @@ class Adafruit_I2C:
     # Alternatively, you can hard-code the bus version below:
     # self.bus = smbus.SMBus(0); # Force I2C0 (early 256MB Pi's)
     # self.bus = smbus.SMBus(1); # Force I2C1 (512MB Pi's)
-    self.bus = smbus.SMBus(busnum if busnum >= 0 else Adafruit_I2C.getPiI2CBusNumber())
+    self.bus = smbus.SMBus(busnum if busnum >= 0 else I2C.getPiI2CBusNumber())
     self.debug = debug
 
   def reverseByteOrder(self, data):
@@ -147,11 +148,11 @@ class Adafruit_I2C:
     except IOError as err:
       return self.errMsg()
 
-Adafruit_I2C.bus = smbus.SMBus(Adafruit_I2C.getPiI2CBusNumber())
+I2C.bus = smbus.SMBus(I2C.getPiI2CBusNumber())  # used by I2C.isDeviceAnswering()
 
 if __name__ == '__main__':
   try:
-    bus = Adafruit_I2C(address=0)
+    bus = I2C(address=0)
     print("Default I2C bus is accessible")
   except:
     print("Error accessing default I2C bus")

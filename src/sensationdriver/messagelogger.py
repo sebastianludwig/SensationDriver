@@ -1,9 +1,9 @@
 import logging
-import sensationprotocol_pb2 as sensationprotocol
+from .protocol import sensationprotocol_pb2 as sensationprotocol
 
 class MessageLogger:
-  def __init__(self):
-    self.logger = logging.getLogger('root')
+  def __init__(self, logger = None):
+    self.logger = logger if logger is not None else logging.getLogger('root')
     
   def on_client_connected(self):
     pass
