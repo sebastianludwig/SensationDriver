@@ -1,6 +1,7 @@
 #encoding: utf-8
 
 require 'time'
+require 'rb-fsevent'
 
 PI_HOSTNAME = "sensationdriver.local"
 PI_USER = 'pi'
@@ -97,10 +98,37 @@ namespace :remote do
         backtick("umount '/Volumes/Home Directory'") if `mount`.include? '/Volumes/Home Directory'
     end
 
-    desc "Copy project files to the Raspberry"
-    task :copy do
-        command = "rsync -ar -e \"ssh -l #{PI_USER}\" --delete --exclude '__pycache__/' --exclude 'lib' --exclude 'include' --exclude='.*' --exclude '*.log' #{File.dirname(__FILE__)}/ #{PI_HOSTNAME}:#{remote_project_path}"
+    desc "Copy project files to the Raspberry. Uses the configured hostname by default, accepts the IP address as optional argument (rake 'remote:copy[192.168.0.70]')"
+    task :copy do |t, args|
+        destination = args.extras.size > 0 ? args.extras[0] : PI_HOSTNAME
+        command = "rsync -ar -e \"ssh -l #{PI_USER}\" --delete --exclude '__pycache__/' --exclude 'lib' --exclude 'include' --exclude='.*' --exclude '*.log' #{File.dirname(__FILE__)}/ #{destination}:#{remote_project_path}"
         backtick(command)
+    end
+
+    namespace :copy do
+      task :watch do
+        ip = nil
+
+        fsevent = FSEvent.new
+        options = {:latency => 5, :no_defer => true }
+        fsevent.watch File.dirname(__FILE__), options do |directories|
+          puts "syncing..."
+          unless ip
+            parts = `ping -c 1 #{PI_HOSTNAME}`.split
+            if parts.size >= 3
+              md = parts[2].match(/(?:\d{0,3}\.){3}\d{0,3}/)
+              if md
+                ip = md[0]
+                puts "#{PI_HOSTNAME} IP resolved to #{ip}"
+              end
+            end
+          end
+
+          `rake -f #{__FILE__} "remote:copy[#{ip}]"`
+          puts "#{Time.now.strftime('%H:%M:%S')}: synced"
+        end
+        fsevent.run
+      end
     end
 
     desc "Reboots the Raspberry"
