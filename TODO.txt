@@ -1,3 +1,8 @@
+- asyncio
+  - server
+  - signals
+  - ..build chain
+
 Treiber von MessageHandler trennen
   eigener loop -> Hardware und Netzwerk blocken sich nicht gegenseitig, max Frequenz der Hardware ausnutzen, keine unnötigen Updates, wenn zwei Netzwerk updates kommen, während HW-Update noch läuft
     - vllt so auch 0.5->0.3-Anlaufproblem lösbar?
