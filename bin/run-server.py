@@ -4,16 +4,16 @@ import logging
 import logging.config
 import yaml
 
+import asyncio
+import signal
+import functools
+
 import project
 import sys
 sys.path.append(project.relative_path('src'))
 del sys
 
 import sensationdriver
-from sensationdriver.platform import is_raspberry
-
-# TODO move these
-
 
 
 def file_logger(filename):    # used in logging_conf.yaml
@@ -24,16 +24,25 @@ with open(project.relative_path('conf', 'logging_conf.yaml')) as f:
 
 logger = logging.getLogger('default')
 
-server = sensationdriver.Server(logger)
 
-if is_raspberry():
-    from sensationdriver import messagehandler
+def main():
+    loop = asyncio.get_event_loop()
+    loop.set_debug(True)
 
-    server.handler = messagehandler.MessageHandler(logger)
-else:
-    from sensationdriver import messagelogger
-    server.handler = messagelogger.MessageLogger(logger)
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, loop.stop)
 
 
-server.listen('', 10000)
-server.loop()
+    server = sensationdriver.Server(loop=loop, logger=logger)
+    server.start()
+
+    try:
+        loop.run_forever()
+    finally:
+        server.stop()
+        loop.close()
+
+
+if __name__ == '__main__':
+    main()
+
