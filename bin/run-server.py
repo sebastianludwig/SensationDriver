@@ -14,6 +14,8 @@ sys.path.append(project.relative_path('src'))
 del sys
 
 import sensationdriver
+from sensationdriver import messages
+from sensationdriver import handler
 
 
 def file_logger(filename):    # used in logging_conf.yaml
@@ -33,7 +35,14 @@ def main():
         loop.add_signal_handler(sig, loop.stop)
 
 
+    actor_config_path = project.relative_path('conf', 'actor_conf.yaml')
+
     server = sensationdriver.Server(loop=loop, logger=logger)
+    server.handler = messages.Parser() >> messages.Logger() >> [messages.TypeFilter(1) >> handler.Vibration(actor_config_path, logger=logger),
+                                                                messages.TypeFilter(2)]
+    for element in server.handler:
+        element.logger = logger
+
     server.start()
 
     try:

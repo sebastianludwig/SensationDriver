@@ -1,32 +1,29 @@
-import sys
-import signal
 import asyncio
 import logging
-
-from . import messages
-from . import platform
+import traceback
 
 
 class Server(object):
     def __init__(self, loop=None, logger=None):
-        self._server = None     # asyncio.Server
+        self.logger = logger if logger is not None else logging.getLogger('root')
         self._loop = loop if loop is not None else asyncio.get_event_loop()
+
+        self.handler = None
+        self._server = None     # asyncio.Server
         self._clients = {}      # asyncio.Task -> (asyncio.StreamReader, asyncio.StreamWriter)
 
-        self.logger = logger if logger is not None else logging.getLogger('root')
-        if platform.is_raspberry():
-            self.handler = messages.Handler(logger=logger)
-        else:
-            self.handler = messages.Logger(logger=logger)
-
     def _accept_client(self, client_reader, client_writer):
-        if not self._clients:               # first client connects
+        if not self._clients and self.handler is not None:               # first client connects
             self.handler.set_up()
 
         def client_disconnected(task):
+            if task.exception():
+                ex = task.exception()
+                output = traceback.format_exception(ex.__class__, ex, ex.__traceback__)
+                self.logger.critical(''.join(output))
+
             del self._clients[task]
-            print("done callback")
-            if not self._clients:           # last client disconnected
+            if not self._clients and self.handler is not None:           # last client disconnected
                 self.handler.tear_down()
 
         # schedule a new Task to handle this specific client connection
@@ -49,19 +46,19 @@ class Server(object):
 
                 message = yield from client_reader.readexactly(message_size)
 
-                self.handler.process_message(message)
+                if self.handler is not None:
+                    self.handler.process(message)
         except asyncio.CancelledError:
-            self.logger.info('disconnecting client {0}'.format(client_ip))
+            self.logger.info('disconnecting client %s', client_ip)
         except asyncio.IncompleteReadError:
-            self.logger.info('client {0} disconnected'.format(client_ip))
-
+            self.logger.info('client %s disconnected', client_ip)
 
     def start(self, ip='', port=10000):
         # start asyncio.Server
         future_server = asyncio.start_server(self._accept_client, ip, port, loop=self._loop)
         # wait until server socket is set up
         self._server = self._loop.run_until_complete(future_server)
-        self.logger.info('server started, listening on {0}:{1}'.format(ip, port))
+        self.logger.info('server started, listening on %s:%s', ip, port)
 
     def stop(self):
         if self._server is None:
@@ -77,7 +74,7 @@ class Server(object):
             if pending:
                 for task in pending:
                     client_writer = self._clients[task][1]
-                    self.logger.error("could not disconnect client {0}".format(self.client_ip(client_writer)))
+                    self.logger.error("could not disconnect client %s", self.client_ip(client_writer))
 
         self._server.close()
         self._loop.run_until_complete(self._server.wait_closed())
