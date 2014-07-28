@@ -1,6 +1,6 @@
 package sensationdriver;
 
-message Sensation {
+message Vibration {
   enum Region {
     LEFT_HAND = 0;
     LEFT_FOREARM = 1;
@@ -10,4 +10,33 @@ message Sensation {
   required Region region = 1;
   required int32 actor_index = 2;
   required float intensity = 3;
+  optional int32 priority = 4 [default=100];
+}
+
+message MuscleStimulation {
+
+}
+
+message LoadPattern {
+
+}
+
+message PlayPattern {
+
+}
+
+message Message {
+    enum MessageType {
+        VIBRATION = 0;
+        MUSCLE_STIMULATION = 1;
+        LOAD_PATTERN = 2;
+        PLAY_PATTERN = 3;
+    }
+
+    required MessageType type = 1;
+
+    optional Vibration vibration = 2;
+    optional MuscleStimulation muscleStimulation = 3;
+    optional LoadPattern loadPattern = 4;
+    optional PlayPattern playPattern = 5;
 }

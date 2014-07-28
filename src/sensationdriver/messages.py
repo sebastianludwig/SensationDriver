@@ -7,10 +7,10 @@ from .protocol import sensationprotocol_pb2 as sensationprotocol
 
 class Parser(pipeline.Element):
     def _process(self, data):
-        sensation = sensationprotocol.Sensation()
-        sensation.ParseFromString(data)
+        message = sensationprotocol.Message()
+        message.ParseFromString(data)
 
-        return sensation
+        return message
 
 
 class Logger(pipeline.Element):
@@ -27,9 +27,13 @@ class Logger(pipeline.Element):
 class TypeFilter(pipeline.Element):
     def __init__(self, message_type=None, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)
-        self.message_type = type
+        self.message_type = message_type
 
     def _process(self, message):
-        # if message.type == self.type
-        return message      # inner optional type
-        # else raise pipeline.TerminateProcessing()
+        if message.type != self.message_type:
+            raise pipeline.TerminateProcessing()
+
+        parts = message.MessageType.Name(self.message_type).split('_')
+        attribute = parts[0].lower() + ''.join(x.title() for x in parts[1:])
+
+        return getattr(message, attribute)
