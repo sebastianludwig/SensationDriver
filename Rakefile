@@ -106,7 +106,7 @@ namespace :remote do
     end
 
     namespace :copy do
-      task :watch do
+      task :watch => :copy do
         ip = nil
 
         fsevent = FSEvent.new
