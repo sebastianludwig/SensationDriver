@@ -13,7 +13,7 @@ class PrioritizedIntensity(object):
 
     def set(self, value, priority=100):
         value = float(value)
-        if value < self._MIN_VALUE:
+        if value < self._MIN_VALUE and priority in self._values:
             del self._values[priority]
         else:
             self._values[priority] = value
@@ -22,6 +22,11 @@ class PrioritizedIntensity(object):
         if not self._values:
             return 0.0
         return self._values.values()[len(self._values) - 1]
+
+    def top_priority(self):
+        if not self._values:
+            return 0
+        return self._values.keys()[len(self._values) - 1]
 
     def reset(self):
         self._values.clear()
@@ -41,8 +46,8 @@ class VibrationMotor(object):
         self.logger = logger if logger is not None else logging.getLogger('root')
         self._loop = loop if loop is not None else asyncio.get_event_loop()
 
-        self._intensity = 0
-        self._target_intensity = 0
+        self._intensity = PrioritizedIntensity()
+        self._target_intensity = self._intensity.eval()
         self.__current_intensity = 0
         self._running_since = None
 
@@ -77,17 +82,17 @@ class VibrationMotor(object):
         self._running_since = self._loop.time() if value >= self._SENSITIVITY else None
 
     def intensity(self):
-        return self._intensity
+        return self._intensity.eval()
 
-    def set_intensity(self, intensity):
+    def set_intensity(self, intensity, priority=100):
         intensity = float(intensity)
         if intensity < 0 or intensity > 1: raise ValueError('intensity not in interval [0, 1]: %s' % intensity)
-        self._intensity = intensity
+        self._intensity.set(intensity, priority)
 
-        if self._intensity < self._SENSITIVITY:
-            self._target_intensity = 0          # TODO this (and only this) needs to become a PrioritizedIntensity
+        if self._intensity.eval() < self._SENSITIVITY:
+            self._target_intensity = 0
         else:
-            self._target_intensity = self._map_intensity(self._intensity)
+            self._target_intensity = self._map_intensity(self._intensity.eval())
 
         def update_complete(task):
             if task.exception():
@@ -108,11 +113,6 @@ class VibrationMotor(object):
 
     @asyncio.coroutine
     def _update_intensity(self):
-        intensity_needs_update = abs(self._current_intensity - self._target_intensity) > self._SENSITIVITY
-
-        if not intensity_needs_update:
-            return
-
         if self._can_set_directly(self._target_intensity):
             self._current_intensity = self._target_intensity
         else:

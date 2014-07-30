@@ -63,6 +63,7 @@ class Vibration(pipeline.Element):
     def _set_up(self):
         for driver in self.drivers.values():
             driver.setAllPWM(0, 0)
+        # TODO reset all actors
 
     def _tear_down(self):
         if not __debug__:
@@ -71,7 +72,8 @@ class Vibration(pipeline.Element):
 
     def _process(self, sensation):
         if sensation.region in self.actors and sensation.actor_index in self.actors[sensation.region]:
-            self.actors[sensation.region][sensation.actor_index].set_intensity(sensation.intensity)
+            actor = self.actors[sensation.region][sensation.actor_index]
+            actor.set_intensity(sensation.intensity, sensation.priority)
         else:
             self.logger.debug("No actor configured with index %d in region %s", sensation.actor_index, sensationprotocol.Vibration.Region.Name(sensation.region))
 

@@ -37,10 +37,31 @@ class TestPrioritizedIntensity(unittest.TestCase):
         self.intensity.set(0, 200)
         self.assertEqual(self.intensity.eval(), 20)
 
+    def test_tolerance_towards_zero(self):
+        self.intensity.set(20, 100)
+        self.intensity.set(10, 200)
+        self.intensity.set(PrioritizedIntensity._MIN_VALUE - 0.0001, 200)
+        self.assertEqual(self.intensity.eval(), 20)
+
+    def test_resetting_twice(self):
+        self.intensity.set(20)
+        self.intensity.set(0)
+        self.intensity.set(0)
+        self.assertEqual(self.intensity.eval(), 0)
+
     def test_clear(self):
         self.intensity.set(20, 100)
         self.intensity.reset()
         self.assertEqual(self.intensity.eval(), 0)
+
+    def test_top_priority(self):
+        self.assertEqual(self.intensity.top_priority(), 0)
+        self.intensity.set(1, 10)
+        self.assertEqual(self.intensity.top_priority(), 10)
+        self.intensity.set(2, 9)
+        self.assertEqual(self.intensity.top_priority(), 10)
+        self.intensity.set(2, 11)
+        self.assertEqual(self.intensity.top_priority(), 11)
 
 def async_test(f):
     def wrapper(*args, **kwargs):
@@ -169,6 +190,27 @@ class TestVibrationMotor(unittest.TestCase):
         self.assertEqual(secondCall[1], 0)
         self.assertAlmostEqual(secondCall[0], 0.1, delta=0.01)
 
+    @async_test
+    def test_no_update_for_lower_priority(self):
+        update1 = self.motor.set_intensity(0.5, 100)
+        yield from asyncio.sleep(0.5)
+        update2 = self.motor.set_intensity(0.8, 50)
+
+        yield from asyncio.gather(update1, update2)
+
+        self.assertEqual(len(self.driver.calls), 1)
+        self.assertEqual(self.motor.intensity(), 0.5)
+
+    @async_test
+    def test_update_for_higher_priority(self):
+        update1 = self.motor.set_intensity(0.5, 100)
+        yield from asyncio.sleep(0.5)
+        update2 = self.motor.set_intensity(0.8, 150)
+
+        yield from asyncio.gather(update1, update2)
+
+        self.assertEqual(len(self.driver.calls), 2)
+        self.assertEqual(self.motor.intensity(), 0.8)
 
 
 if __name__ == '__main__':
