@@ -77,42 +77,38 @@ class TestVibrationMotor(unittest.TestCase):
 
     @async_test
     def test_direct_set(self):
-        self.motor.intensity = 1
+        update = self.motor.set_intensity(1)
 
-        if self.motor._update_task:
-            yield from self.motor._update_task
+        yield from update
 
         self.assertEqual(len(self.driver.calls), 1)
 
     @async_test
     def test_minimal_change_ingored(self):
-        self.motor.intensity = 0.5
+        update1 = self.motor.set_intensity(0.5)
         yield from asyncio.sleep(0.1)
-        self.motor.intensity = 0.5001
+        update2 = self.motor.set_intensity(0.5001)
 
-        if self.motor._update_task:
-            yield from self.motor._update_task
+        yield from asyncio.gather(update1, update2)
 
         self.assertEqual(len(self.driver.calls), 1)
-        self.assertEqual(self.motor.intensity, 0.5001)
+        self.assertEqual(self.motor.intensity(), 0.5001)
 
     @async_test
     def test_delayed_set(self):
-        self.motor.intensity = 0.1
+        update = self.motor.set_intensity(0.1)
 
-        if self.motor._update_task:
-            yield from self.motor._update_task
+        yield from update
 
         self.assertEqual(len(self.driver.calls), 2)
 
     @async_test
     def test_delayed_update(self):
-        self.motor.intensity = 0.1
+        update1 = self.motor.set_intensity(0.1)
         yield from asyncio.sleep(0.1)
-        self.motor.intensity = 0.2
+        update2 = self.motor.set_intensity(0.2)
 
-        if self.motor._update_task:
-            yield from self.motor._update_task
+        yield from asyncio.gather(update1, update2)
 
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
@@ -122,12 +118,11 @@ class TestVibrationMotor(unittest.TestCase):
     @async_test
     def test_instant_min(self):
         delay = self.motor._MOTOR_MIN_INTENSITY_WARMUP + 0.1
-        self.motor.intensity = 1
+        update1 = self.motor.set_intensity(1)
         yield from asyncio.sleep(delay)
-        self.motor.intensity = 0.1
+        update2 = self.motor.set_intensity(0.1)
 
-        if self.motor._update_task:
-            yield from self.motor._update_task
+        yield from asyncio.gather(update1, update2)
 
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
@@ -137,12 +132,11 @@ class TestVibrationMotor(unittest.TestCase):
     @async_test
     def test_delayed_min(self):
         delay = self.motor._MOTOR_MIN_INTENSITY_WARMUP - 0.1
-        self.motor.intensity = 1
+        update1 = self.motor.set_intensity(1)
         yield from asyncio.sleep(delay)
-        self.motor.intensity = 0.1
+        update2 = self.motor.set_intensity(0.1)
 
-        if self.motor._update_task:
-            yield from self.motor._update_task
+        yield from asyncio.gather(update1, update2)
 
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
@@ -151,12 +145,11 @@ class TestVibrationMotor(unittest.TestCase):
 
     @async_test
     def test_instant_update(self):
-        self.motor.intensity = 0.1
+        update1 = self.motor.set_intensity(0.1)
         yield from asyncio.sleep(0.1)
-        self.motor.intensity = 1
+        update2 = self.motor.set_intensity(1)
 
-        if self.motor._update_task:
-            yield from self.motor._update_task
+        yield from asyncio.gather(update1, update2)
 
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
@@ -165,12 +158,11 @@ class TestVibrationMotor(unittest.TestCase):
 
     @async_test
     def test_instant_off(self):
-        self.motor.intensity = 0.1
+        update1 = self.motor.set_intensity(0.1)
         yield from asyncio.sleep(0.1)
-        self.motor.intensity = 0
+        update2 = self.motor.set_intensity(0)
 
-        if self.motor._update_task:
-            yield from self.motor._update_task
+        yield from asyncio.gather(update1, update2)
 
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]

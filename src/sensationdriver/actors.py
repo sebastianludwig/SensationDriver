@@ -45,7 +45,6 @@ class VibrationMotor(object):
         self._target_intensity = 0
         self.__current_intensity = 0
         self._running_since = None
-        self._update_task = None
 
     def _map_intensity(self, intensity):
         return self._MOTOR_MIN_INTENSITY + (1 - self._MOTOR_MIN_INTENSITY) * intensity ** self._MAPPING_CURVE_DEGREE
@@ -77,12 +76,10 @@ class VibrationMotor(object):
         self.driver.setPWM(self.outlet, 0, int(self.__current_intensity * 4096))
         self._running_since = self._loop.time() if value >= self._SENSITIVITY else None
 
-    @property
     def intensity(self):
         return self._intensity
 
-    @intensity.setter
-    def intensity(self, intensity):
+    def set_intensity(self, intensity):
         intensity = float(intensity)
         if intensity < 0 or intensity > 1: raise ValueError('intensity not in interval [0, 1]: %s' % intensity)
         self._intensity = intensity
@@ -92,35 +89,35 @@ class VibrationMotor(object):
         else:
             self._target_intensity = self._map_intensity(self._intensity)
 
-        intensity_needs_update = abs(self._current_intensity - self._target_intensity) > self._SENSITIVITY
+        def update_complete(task):
+            if task.exception():
+                ex = task.exception()
+                output = traceback.format_exception(ex.__class__, ex, ex.__traceback__)
+                self.logger.critical(''.join(output))
+
+        update_task = asyncio.Task(self._update_intensity(), loop=self._loop)
+        update_task.add_done_callback(update_complete)
+        return update_task
 
         # TODO check out how it looks if it's a coroutine (-> process needs to become one, so does _process...)
         # ...then everything would need to be threadsafe...actually it already needs to be threadsave, because we support multiple clients
         # which is not too bad, because hardly anything has state (only this actor so far?)
         # and it's concurrency only at well defined points... so I could just lock this complete setter? No, bad idea (because of the wait..)
         # TODO pass loop here to not rely on a global event loop..?
-        if intensity_needs_update:
-            if self._can_set_directly(self._target_intensity):
-                self._current_intensity = self._target_intensity
-                if self._update_task:
-                    self._update_task.cancel()
-            elif not self._update_task or self._update_task.done():
-                def update_complete(task):
-                    if task.exception():
-                        ex = task.exception()
-                        output = traceback.format_exception(ex.__class__, ex, ex.__traceback__)
-                        self.logger.critical(''.join(output))
 
-                self._update_task = asyncio.Task(self._update_intensity(), loop=self._loop)
-                self._update_task.add_done_callback(update_complete)
 
     @asyncio.coroutine
     def _update_intensity(self):
-        try:
+        intensity_needs_update = abs(self._current_intensity - self._target_intensity) > self._SENSITIVITY
+
+        if not intensity_needs_update:
+            return
+
+        if self._can_set_directly(self._target_intensity):
+            self._current_intensity = self._target_intensity
+        else:
             if self._current_intensity < self._MOTOR_MIN_INTENSITY:
                 self._current_intensity = self._MOTOR_MIN_INSTANT_INTENSITY
             delay = self._MOTOR_MIN_INTENSITY_WARMUP - self._running_time()
             yield from asyncio.sleep(delay, loop=self._loop)
             self._current_intensity = self._target_intensity
-        except asyncio.CancelledError:
-            pass

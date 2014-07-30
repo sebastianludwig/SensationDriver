@@ -14,7 +14,6 @@ else:
     from .dummy import wirebus
 
 # TODO
-# add priority to message
 # pass priority to actor
 
 class Vibration(pipeline.Element):
@@ -72,7 +71,7 @@ class Vibration(pipeline.Element):
 
     def _process(self, sensation):
         if sensation.region in self.actors and sensation.actor_index in self.actors[sensation.region]:
-            self.actors[sensation.region][sensation.actor_index].intensity = sensation.intensity
+            self.actors[sensation.region][sensation.actor_index].set_intensity(sensation.intensity)
         else:
             self.logger.debug("No actor configured with index %d in region %s", sensation.actor_index, sensationprotocol.Vibration.Region.Name(sensation.region))
 
