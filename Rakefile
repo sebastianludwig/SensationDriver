@@ -68,6 +68,21 @@ task :compile do
     puts `protoc --proto_path='#{File.dirname(__FILE__)}' --python_out='#{sibling_path('src', 'sensationdriver', 'protocol')}' #{filenames.join(' ')}`
 end
 
+desc "Run unit tests"
+task :test do
+    ip = nil
+
+    fsevent = FSEvent.new
+    options = {:latency => 5, :no_defer => true }
+    fsevent.watch sibling_path('test'), options do |directories|
+        Dir.chdir(sibling_path('test')) do
+            files = Dir.glob('*.py').map { |f| File.basename(f) }
+            puts `#{PYTHON} -m unittest -v #{files.join(' ')}`
+        end
+    end
+    fsevent.run
+end
+
 namespace :dependencies do
     desc "Install python package dependencies through pip"
     task :install do
@@ -106,29 +121,29 @@ namespace :remote do
     end
 
     namespace :copy do
-      task :watch => :copy do
-        ip = nil
+        task :watch => :copy do
+            ip = nil
 
-        fsevent = FSEvent.new
-        options = {:latency => 5, :no_defer => true }
-        fsevent.watch File.dirname(__FILE__), options do |directories|
-          puts "syncing..."
-          unless ip
-            parts = `ping -c 1 #{PI_HOSTNAME}`.split
-            if parts.size >= 3
-              md = parts[2].match(/(?:\d{0,3}\.){3}\d{0,3}/)
-              if md
-                ip = md[0]
-                puts "#{PI_HOSTNAME} IP resolved to #{ip}"
-              end
+            fsevent = FSEvent.new
+            options = {:latency => 5, :no_defer => true }
+            fsevent.watch File.dirname(__FILE__), options do |directories|
+                puts "syncing..."
+                unless ip
+                    parts = `ping -c 1 #{PI_HOSTNAME}`.split
+                    if parts.size >= 3
+                        md = parts[2].match(/(?:\d{0,3}\.){3}\d{0,3}/)
+                        if md
+                            ip = md[0]
+                            puts "#{PI_HOSTNAME} IP resolved to #{ip}"
+                        end
+                    end
+                end
+
+                `rake -f #{__FILE__} "remote:copy[#{ip}]"`
+                puts "#{Time.now.strftime('%H:%M:%S')}: synced"
             end
-          end
-
-          `rake -f #{__FILE__} "remote:copy[#{ip}]"`
-          puts "#{Time.now.strftime('%H:%M:%S')}: synced"
+            fsevent.run
         end
-        fsevent.run
-      end
     end
 
     desc "Reboots the Raspberry"

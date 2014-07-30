@@ -6,22 +6,25 @@ from sortedcontainers import SortedDict
 
 
 class PrioritizedIntensity(object):
-    _SENSITIVITY = 0.005
+    _MIN_VALUE = 0.005
 
     def __init__(self):
         self._values = SortedDict()
 
     def set(self, value, priority=100):
         value = float(value)
-        if value < self._SENSITIVITY:
+        if value < self._MIN_VALUE:
             del self._values[priority]
         else:
             self._values[priority] = value
 
-    def evaluate(self):
+    def eval(self):
         if not self._values:
             return 0.0
         return self._values.values()[len(self._values) - 1]
+
+    def reset(self):
+        self._values.clear()
 
 
 class VibrationMotor(object):
@@ -41,10 +44,38 @@ class VibrationMotor(object):
         self._intensity = 0
         self._target_intensity = 0
         self.__current_intensity = 0
+        self._running_since = None
         self._update_task = None
 
     def _map_intensity(self, intensity):
         return self._MOTOR_MIN_INTENSITY + (1 - self._MOTOR_MIN_INTENSITY) * intensity ** self._MAPPING_CURVE_DEGREE
+
+    def _running_time(self):
+        if self._running_since is None:
+            return 0
+        else:
+            return self._loop.time() - self._running_since
+
+    def _can_set_directly(self, intensity):
+        if intensity < self._SENSITIVITY:    # turn off
+            return True
+        if intensity >= self._MOTOR_MIN_INSTANT_INTENSITY:  # intense enough to start instantly
+            return True
+        if self._current_intensity >= self._MOTOR_MIN_INTENSITY and self._running_time() > self._MOTOR_MIN_INTENSITY_WARMUP:
+            return True
+
+    @property
+    def _current_intensity(self):
+        return self.__current_intensity
+
+    @_current_intensity.setter
+    def _current_intensity(self, value):
+        if abs(value - self.__current_intensity) < self._SENSITIVITY:
+            return
+        self.logger.info("setting %s to %.3f", self.position, value)
+        self.__current_intensity = value
+        self.driver.setPWM(self.outlet, 0, int(self.__current_intensity * 4096))
+        self._running_since = self._loop.time() if value >= self._SENSITIVITY else None
 
     @property
     def intensity(self):
@@ -57,43 +88,39 @@ class VibrationMotor(object):
         self._intensity = intensity
 
         if self._intensity < self._SENSITIVITY:
-            self._target_intensity = 0
+            self._target_intensity = 0          # TODO this (and only this) needs to become a PrioritizedIntensity
         else:
             self._target_intensity = self._map_intensity(self._intensity)
 
         intensity_needs_update = abs(self._current_intensity - self._target_intensity) > self._SENSITIVITY
 
+        # TODO check out how it looks if it's a coroutine (-> process needs to become one, so does _process...)
+        # ...then everything would need to be threadsafe...actually it already needs to be threadsave, because we support multiple clients
+        # which is not too bad, because hardly anything has state (only this actor so far?)
+        # and it's concurrency only at well defined points... so I could just lock this complete setter? No, bad idea (because of the wait..)
+        # TODO pass loop here to not rely on a global event loop..?
         if intensity_needs_update:
-            if not self._update_task or self._update_task.done():
+            if self._can_set_directly(self._target_intensity):
+                self._current_intensity = self._target_intensity
+                if self._update_task:
+                    self._update_task.cancel()
+            elif not self._update_task or self._update_task.done():
                 def update_complete(task):
                     if task.exception():
                         ex = task.exception()
                         output = traceback.format_exception(ex.__class__, ex, ex.__traceback__)
                         self.logger.critical(''.join(output))
 
-                self._update_task = asyncio.Task(self._update_intensity())
+                self._update_task = asyncio.Task(self._update_intensity(), loop=self._loop)
                 self._update_task.add_done_callback(update_complete)
-
-    @property
-    def _current_intensity(self):
-        return self.__current_intensity
-
-    @_current_intensity.setter
-    def _current_intensity(self, value):
-        self.logger.info("setting %s to %.3f", self.position, value)
-        self.__current_intensity = value
-        self.driver.setPWM(self.outlet, 0, int(self.__current_intensity * 4096))
 
     @asyncio.coroutine
     def _update_intensity(self):
-        can_set_target_intensity_directly = (
-            self._target_intensity < self._SENSITIVITY or                           # should turn off
-            self._target_intensity >= self._MOTOR_MIN_INSTANT_INTENSITY or          # intense enough to start instantly
-            self._current_intensity >= self._MOTOR_MIN_INTENSITY)                   # already moving
-
-        if can_set_target_intensity_directly:
+        try:
+            if self._current_intensity < self._MOTOR_MIN_INTENSITY:
+                self._current_intensity = self._MOTOR_MIN_INSTANT_INTENSITY
+            delay = self._MOTOR_MIN_INTENSITY_WARMUP - self._running_time()
+            yield from asyncio.sleep(delay, loop=self._loop)
             self._current_intensity = self._target_intensity
-        else:
-            self._current_intensity = self._MOTOR_MIN_INSTANT_INTENSITY
-            yield from asyncio.sleep(self._MOTOR_MIN_INTENSITY_WARMUP)
-            self._current_intensity = self._target_intensity
+        except asyncio.CancelledError:
+            pass

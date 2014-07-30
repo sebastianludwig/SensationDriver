@@ -1,6 +1,5 @@
 import logging
 
-from . import platform
 from . import pipeline
 from .protocol import sensationprotocol_pb2 as sensationprotocol
 
