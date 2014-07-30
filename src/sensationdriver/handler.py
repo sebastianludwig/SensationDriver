@@ -1,5 +1,6 @@
 import logging
 import yaml
+import asyncio
 
 from . import platform
 from . import pipeline
@@ -13,8 +14,6 @@ else:
     from .dummy import pca9685
     from .dummy import wirebus
 
-# TODO
-# pass priority to actor
 
 class Vibration(pipeline.Element):
     def __init__(self, config_path, downstream=None, logger=None):
@@ -70,10 +69,11 @@ class Vibration(pipeline.Element):
             for driver in self.drivers.values():
                 driver.setAllPWM(0, 0)
 
+    @asyncio.coroutine
     def _process(self, sensation):
         if sensation.region in self.actors and sensation.actor_index in self.actors[sensation.region]:
             actor = self.actors[sensation.region][sensation.actor_index]
-            actor.set_intensity(sensation.intensity, sensation.priority)
+            yield from actor.set_intensity(sensation.intensity, sensation.priority)
         else:
             self.logger.debug("No actor configured with index %d in region %s", sensation.actor_index, sensationprotocol.Vibration.Region.Name(sensation.region))
 

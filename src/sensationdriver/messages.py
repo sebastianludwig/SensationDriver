@@ -1,10 +1,12 @@
 import logging
+import asyncio
 
 from . import pipeline
 from .protocol import sensationprotocol_pb2 as sensationprotocol
 
 
 class Parser(pipeline.Element):
+    @asyncio.coroutine
     def _process(self, data):
         message = sensationprotocol.Message()
         message.ParseFromString(data)
@@ -17,6 +19,7 @@ class Logger(pipeline.Element):
         super().__init__(downstream=downstream, logger=logger)
         self.level = logging.INFO
 
+    @asyncio.coroutine
     def _process(self, message):
         self.logger.log(self.level, 'received:\n--\n%s--', message)
 
@@ -28,6 +31,7 @@ class TypeFilter(pipeline.Element):
         super().__init__(downstream=downstream, logger=logger)
         self.message_type = message_type
 
+    @asyncio.coroutine
     def _process(self, message):
         if message.type != self.message_type:
             raise pipeline.TerminateProcessing()

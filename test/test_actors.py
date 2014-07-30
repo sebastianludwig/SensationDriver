@@ -9,6 +9,8 @@ def log(*text):
 
 import unittest
 import asyncio
+import time
+
 from sensationdriver.actors import PrioritizedIntensity
 from sensationdriver.actors import VibrationMotor
 
@@ -74,31 +76,37 @@ def async_test(f):
 class TestVibrationMotor(unittest.TestCase):
 
     class MockDriver(object):
-        def __init__(self, loop):
-            self.loop = loop
+        def __init__(self):
             self.calls = []
             self.start_time = None
             self.intensity = 0
 
         def setPWM(self, outlet, start, intensity):
-            time = self.loop.time()
+            current_time = time.time()
             if not self.start_time:
-                self.start_time = time
+                self.start_time = current_time
             self.intensity = intensity / 4096
-            self.calls.append(((time - self.start_time), self.intensity))
+            self.calls.append(((current_time - self.start_time), self.intensity))
 
     def setUp(self):
-        # self.loop = asyncio.new_event_loop()
-        # asyncio.set_event_loop(None)
         self.loop = asyncio.get_event_loop()
 
-        self.driver = TestVibrationMotor.MockDriver(self.loop)
-        self.motor = VibrationMotor(self.driver, 0, loop=self.loop)
+        self.driver = TestVibrationMotor.MockDriver()
+        self.motor = VibrationMotor(self.driver, 0)
 
+        self.tasks = []
+
+    def run_async(self, coro):
+        task = asyncio.Task(coro)
+        self.tasks.append(task)
+
+    @asyncio.coroutine
+    def wait_for_async(self):
+        yield from asyncio.gather(*self.tasks)
 
     @async_test
     def test_direct_set(self):
-        update = self.motor.set_intensity(1)
+        update = asyncio.Task(self.motor.set_intensity(1))
 
         yield from update
 
@@ -106,30 +114,30 @@ class TestVibrationMotor(unittest.TestCase):
 
     @async_test
     def test_minimal_change_ingored(self):
-        update1 = self.motor.set_intensity(0.5)
+        self.run_async(self.motor.set_intensity(0.5))
         yield from asyncio.sleep(0.1)
-        update2 = self.motor.set_intensity(0.5001)
+        self.run_async(self.motor.set_intensity(0.5001))
 
-        yield from asyncio.gather(update1, update2)
+        yield from self.wait_for_async()
 
         self.assertEqual(len(self.driver.calls), 1)
         self.assertEqual(self.motor.intensity(), 0.5001)
 
     @async_test
     def test_delayed_set(self):
-        update = self.motor.set_intensity(0.1)
+        self.run_async(self.motor.set_intensity(0.1))
 
-        yield from update
+        yield from self.wait_for_async()
 
         self.assertEqual(len(self.driver.calls), 2)
 
     @async_test
     def test_delayed_update(self):
-        update1 = self.motor.set_intensity(0.1)
+        self.run_async(self.motor.set_intensity(0.1))
         yield from asyncio.sleep(0.1)
-        update2 = self.motor.set_intensity(0.2)
+        self.run_async(self.motor.set_intensity(0.2))
 
-        yield from asyncio.gather(update1, update2)
+        yield from self.wait_for_async()
 
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
@@ -139,11 +147,11 @@ class TestVibrationMotor(unittest.TestCase):
     @async_test
     def test_instant_min(self):
         delay = self.motor._MOTOR_MIN_INTENSITY_WARMUP + 0.1
-        update1 = self.motor.set_intensity(1)
+        self.run_async(self.motor.set_intensity(1))
         yield from asyncio.sleep(delay)
-        update2 = self.motor.set_intensity(0.1)
+        self.run_async(self.motor.set_intensity(0.1))
 
-        yield from asyncio.gather(update1, update2)
+        yield from self.wait_for_async()
 
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
@@ -153,11 +161,11 @@ class TestVibrationMotor(unittest.TestCase):
     @async_test
     def test_delayed_min(self):
         delay = self.motor._MOTOR_MIN_INTENSITY_WARMUP - 0.1
-        update1 = self.motor.set_intensity(1)
+        self.run_async(self.motor.set_intensity(1))
         yield from asyncio.sleep(delay)
-        update2 = self.motor.set_intensity(0.1)
+        self.run_async(self.motor.set_intensity(0.1))
 
-        yield from asyncio.gather(update1, update2)
+        yield from self.wait_for_async()
 
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
@@ -166,11 +174,11 @@ class TestVibrationMotor(unittest.TestCase):
 
     @async_test
     def test_instant_update(self):
-        update1 = self.motor.set_intensity(0.1)
+        self.run_async(self.motor.set_intensity(0.1))
         yield from asyncio.sleep(0.1)
-        update2 = self.motor.set_intensity(1)
+        self.run_async(self.motor.set_intensity(1))
 
-        yield from asyncio.gather(update1, update2)
+        yield from self.wait_for_async()
 
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
@@ -179,11 +187,11 @@ class TestVibrationMotor(unittest.TestCase):
 
     @async_test
     def test_instant_off(self):
-        update1 = self.motor.set_intensity(0.1)
+        self.run_async(self.motor.set_intensity(0.1))
         yield from asyncio.sleep(0.1)
-        update2 = self.motor.set_intensity(0)
+        self.run_async(self.motor.set_intensity(0))
 
-        yield from asyncio.gather(update1, update2)
+        yield from self.wait_for_async()
 
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
@@ -192,22 +200,22 @@ class TestVibrationMotor(unittest.TestCase):
 
     @async_test
     def test_no_update_for_lower_priority(self):
-        update1 = self.motor.set_intensity(0.5, 100)
+        self.run_async(self.motor.set_intensity(0.5, 100))
         yield from asyncio.sleep(0.5)
-        update2 = self.motor.set_intensity(0.8, 50)
+        self.run_async(self.motor.set_intensity(0.8, 50))
 
-        yield from asyncio.gather(update1, update2)
+        yield from self.wait_for_async()
 
         self.assertEqual(len(self.driver.calls), 1)
         self.assertEqual(self.motor.intensity(), 0.5)
 
     @async_test
     def test_update_for_higher_priority(self):
-        update1 = self.motor.set_intensity(0.5, 100)
+        self.run_async(self.motor.set_intensity(0.5, 100))
         yield from asyncio.sleep(0.5)
-        update2 = self.motor.set_intensity(0.8, 150)
+        self.run_async(self.motor.set_intensity(0.8, 150))
 
-        yield from asyncio.gather(update1, update2)
+        yield from self.wait_for_async()
 
         self.assertEqual(len(self.driver.calls), 2)
         self.assertEqual(self.motor.intensity(), 0.8)

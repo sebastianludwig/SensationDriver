@@ -27,6 +27,7 @@ class Server(object):
                 self.handler.tear_down()
 
         # schedule a new Task to handle this specific client connection
+        # TODO use self._loop.create_task once Python 3.4.2 is available on OS X via brew
         task = asyncio.Task(self._handle_client(client_reader, client_writer), loop=self._loop)
         task.add_done_callback(client_disconnected)
 
@@ -47,7 +48,8 @@ class Server(object):
                 message = yield from client_reader.readexactly(message_size)
 
                 if self.handler is not None:
-                    self.handler.process(message)
+                    # HINT this could (probably?) be parallelized by creating a task -> multiple messages would be processed in parallel
+                    yield from self.handler.process(message)
         except asyncio.CancelledError:
             self.logger.info('disconnecting client %s', client_ip)
         except asyncio.IncompleteReadError:

@@ -1,4 +1,5 @@
 import logging
+import asyncio
 
 
 class TerminateProcessing(Exception):
@@ -45,16 +46,18 @@ class Element(object):
             successor.tear_down()
         self._tear_down()
 
+    @asyncio.coroutine
     def _process(self, data):
         return None
 
+    @asyncio.coroutine
     def process(self, data):
         try:
-            result = self._process(data)
+            result = yield from self._process(data)
 
             assert result is not None, "pipeline element '{0}' processing result must not be None".format(self.__class__.__name__)
 
             for successor in self._successors():
-                successor.process(result)
+                yield from successor.process(result)
         except TerminateProcessing:
             pass
