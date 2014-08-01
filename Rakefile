@@ -66,6 +66,10 @@ desc "Compiles the protobuf protocol definitions into python files"
 task :compile do
     filenames = Dir.glob(sibling_path('*.proto'))
     puts `protoc --proto_path='#{File.dirname(__FILE__)}' --python_out='#{sibling_path('src', 'sensationdriver', 'protocol')}' #{filenames.join(' ')}`
+
+    filenames.each do |filename|
+        puts `protobuf-generate pbnet #{filename}`
+    end
 end
 
 desc "Run unit tests"

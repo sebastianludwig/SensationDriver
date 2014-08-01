@@ -1,6 +1,18 @@
+GIT
+  remote: https://sebastianludwig@bitbucket.org/sebastianludwig/protobuf-generate.git
+  revision: 0f89b42023b56be74009ae83073b917c8991f6fe
+  specs:
+    protobuf-generate (0.2.4)
+      erubis
+      parslet
+
 GEM
   remote: https://rubygems.org/
   specs:
+    blankslate (2.1.2.4)
+    erubis (2.7.0)
+    parslet (1.6.1)
+      blankslate (~> 2.0)
     rake (10.3.2)
     rb-fsevent (0.9.4)
 
@@ -8,5 +20,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  protobuf-generate (~> 0.2.4)!
   rake (>= 10.1.0)
   rb-fsevent
