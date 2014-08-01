@@ -70,11 +70,11 @@ class Vibration(pipeline.Element):
                 driver.setAllPWM(0, 0)
 
     @asyncio.coroutine
-    def _process(self, sensation):
-        if sensation.region in self.actors and sensation.actor_index in self.actors[sensation.region]:
-            actor = self.actors[sensation.region][sensation.actor_index]
-            yield from actor.set_intensity(sensation.intensity, sensation.priority)
+    def _process(self, vibration):
+        if vibration.target_region in self.actors and vibration.actor_index in self.actors[vibration.target_region]:
+            actor = self.actors[vibration.target_region][vibration.actor_index]
+            yield from actor.set_intensity(vibration.intensity, vibration.priority)
         else:
-            self.logger.debug("No actor configured with index %d in region %s", sensation.actor_index, sensationprotocol.Vibration.Region.Name(sensation.region))
+            self.logger.debug("No actor configured with index %d in region %s", vibration.actor_index, sensationprotocol.Vibration.Region.Name(vibration.target_region))
 
-        return sensation
+        return vibration

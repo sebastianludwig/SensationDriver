@@ -36,7 +36,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='sensationprotocol.proto',
   package='sensationdriver',
-  serialized_pb=b('\n\x17sensationprotocol.proto\x12\x0fsensationdriver\"\xbc\x01\n\tVibration\x12\x31\n\x06region\x18\x01 \x02(\x0e\x32!.sensationdriver.Vibration.Region\x12\x13\n\x0b\x61\x63tor_index\x18\x02 \x02(\x05\x12\x11\n\tintensity\x18\x03 \x02(\x02\x12\x15\n\x08priority\x18\x04 \x01(\x05:\x03\x31\x30\x30\"=\n\x06Region\x12\r\n\tLEFT_HAND\x10\x00\x12\x10\n\x0cLEFT_FOREARM\x10\x01\x12\x12\n\x0eLEFT_UPPER_ARM\x10\x02\"\x13\n\x11MuscleStimulation\"\r\n\x0bLoadPattern\"\r\n\x0bPlayPattern\"\xeb\x02\n\x07Message\x12\x32\n\x04type\x18\x01 \x02(\x0e\x32$.sensationdriver.Message.MessageType\x12-\n\tvibration\x18\x02 \x01(\x0b\x32\x1a.sensationdriver.Vibration\x12=\n\x11muscleStimulation\x18\x03 \x01(\x0b\x32\".sensationdriver.MuscleStimulation\x12\x31\n\x0bloadPattern\x18\x04 \x01(\x0b\x32\x1c.sensationdriver.LoadPattern\x12\x31\n\x0bplayPattern\x18\x05 \x01(\x0b\x32\x1c.sensationdriver.PlayPattern\"X\n\x0bMessageType\x12\r\n\tVIBRATION\x10\x00\x12\x16\n\x12MUSCLE_STIMULATION\x10\x01\x12\x10\n\x0cLOAD_PATTERN\x10\x02\x12\x10\n\x0cPLAY_PATTERN\x10\x03'))
+  serialized_pb=b('\n\x17sensationprotocol.proto\x12\x0fsensationdriver\"\xc3\x01\n\tVibration\x12\x38\n\rtarget_region\x18\x01 \x02(\x0e\x32!.sensationdriver.Vibration.Region\x12\x13\n\x0b\x61\x63tor_index\x18\x02 \x02(\x05\x12\x11\n\tintensity\x18\x03 \x02(\x02\x12\x15\n\x08priority\x18\x04 \x01(\x05:\x03\x31\x30\x30\"=\n\x06Region\x12\r\n\tLEFT_HAND\x10\x00\x12\x10\n\x0cLEFT_FOREARM\x10\x01\x12\x12\n\x0eLEFT_UPPER_ARM\x10\x02\"\x13\n\x11MuscleStimulation\"\xc1\x02\n\x05Track\x12\x31\n\x06region\x18\x01 \x02(\x0e\x32!.sensationdriver.Vibration.Region\x12\x13\n\x0b\x61\x63tor_index\x18\x02 \x02(\x05\x1a\xef\x01\n\x08Keyframe\x12<\n\rcontrol_point\x18\x01 \x02(\x0b\x32%.sensationdriver.Track.Keyframe.Point\x12?\n\x10in_tangent_start\x18\x02 \x01(\x0b\x32%.sensationdriver.Track.Keyframe.Point\x12>\n\x0fout_tangent_end\x18\x03 \x01(\x0b\x32%.sensationdriver.Track.Keyframe.Point\x1a$\n\x05Point\x12\x0c\n\x04time\x18\x01 \x02(\x02\x12\r\n\x05value\x18\x02 \x02(\x02\"I\n\x0bLoadPattern\x12\x12\n\nidentifier\x18\x01 \x02(\t\x12&\n\x06tracks\x18\x02 \x03(\x0b\x32\x16.sensationdriver.Track\"7\n\x0bPlayPattern\x12\x12\n\nidentifier\x18\x01 \x02(\t\x12\x14\n\x08priority\x18\x02 \x01(\x05:\x02\x38\x30\"\xee\x02\n\x07Message\x12\x32\n\x04type\x18\x01 \x02(\x0e\x32$.sensationdriver.Message.MessageType\x12-\n\tvibration\x18\x02 \x01(\x0b\x32\x1a.sensationdriver.Vibration\x12>\n\x12muscle_stimulation\x18\x03 \x01(\x0b\x32\".sensationdriver.MuscleStimulation\x12\x32\n\x0cload_pattern\x18\x04 \x01(\x0b\x32\x1c.sensationdriver.LoadPattern\x12\x32\n\x0cplay_pattern\x18\x05 \x01(\x0b\x32\x1c.sensationdriver.PlayPattern\"X\n\x0bMessageType\x12\r\n\tVIBRATION\x10\x00\x12\x16\n\x12MUSCLE_STIMULATION\x10\x01\x12\x10\n\x0cLOAD_PATTERN\x10\x02\x12\x10\n\x0cPLAY_PATTERN\x10\x03'))
 
 
 
@@ -61,8 +61,8 @@ _VIBRATION_REGION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=172,
-  serialized_end=233,
+  serialized_start=179,
+  serialized_end=240,
 )
 
 _MESSAGE_MESSAGETYPE = _descriptor.EnumDescriptor(
@@ -90,8 +90,8 @@ _MESSAGE_MESSAGETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=562,
-  serialized_end=650,
+  serialized_start=998,
+  serialized_end=1086,
 )
 
 
@@ -103,7 +103,7 @@ _VIBRATION = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='region', full_name='sensationdriver.Vibration.region', index=0,
+      name='target_region', full_name='sensationdriver.Vibration.target_region', index=0,
       number=1, type=14, cpp_type=8, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -141,7 +141,7 @@ _VIBRATION = _descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=45,
-  serialized_end=233,
+  serialized_end=240,
 )
 
 
@@ -161,8 +161,118 @@ _MUSCLESTIMULATION = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=235,
-  serialized_end=254,
+  serialized_start=242,
+  serialized_end=261,
+)
+
+
+_TRACK_KEYFRAME_POINT = _descriptor.Descriptor(
+  name='Point',
+  full_name='sensationdriver.Track.Keyframe.Point',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='time', full_name='sensationdriver.Track.Keyframe.Point.time', index=0,
+      number=1, type=2, cpp_type=6, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='sensationdriver.Track.Keyframe.Point.value', index=1,
+      number=2, type=2, cpp_type=6, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=549,
+  serialized_end=585,
+)
+
+_TRACK_KEYFRAME = _descriptor.Descriptor(
+  name='Keyframe',
+  full_name='sensationdriver.Track.Keyframe',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='control_point', full_name='sensationdriver.Track.Keyframe.control_point', index=0,
+      number=1, type=11, cpp_type=10, label=2,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='in_tangent_start', full_name='sensationdriver.Track.Keyframe.in_tangent_start', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='out_tangent_end', full_name='sensationdriver.Track.Keyframe.out_tangent_end', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_TRACK_KEYFRAME_POINT, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=346,
+  serialized_end=585,
+)
+
+_TRACK = _descriptor.Descriptor(
+  name='Track',
+  full_name='sensationdriver.Track',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='region', full_name='sensationdriver.Track.region', index=0,
+      number=1, type=14, cpp_type=8, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='actor_index', full_name='sensationdriver.Track.actor_index', index=1,
+      number=2, type=5, cpp_type=1, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_TRACK_KEYFRAME, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=264,
+  serialized_end=585,
 )
 
 
@@ -173,6 +283,20 @@ _LOADPATTERN = _descriptor.Descriptor(
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
+    _descriptor.FieldDescriptor(
+      name='identifier', full_name='sensationdriver.LoadPattern.identifier', index=0,
+      number=1, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=unicode(b(""), "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='tracks', full_name='sensationdriver.LoadPattern.tracks', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -182,8 +306,8 @@ _LOADPATTERN = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=256,
-  serialized_end=269,
+  serialized_start=587,
+  serialized_end=660,
 )
 
 
@@ -194,6 +318,20 @@ _PLAYPATTERN = _descriptor.Descriptor(
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
+    _descriptor.FieldDescriptor(
+      name='identifier', full_name='sensationdriver.PlayPattern.identifier', index=0,
+      number=1, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=unicode(b(""), "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='priority', full_name='sensationdriver.PlayPattern.priority', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=True, default_value=80,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -203,8 +341,8 @@ _PLAYPATTERN = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=271,
-  serialized_end=284,
+  serialized_start=662,
+  serialized_end=717,
 )
 
 
@@ -230,21 +368,21 @@ _MESSAGE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='muscleStimulation', full_name='sensationdriver.Message.muscleStimulation', index=2,
+      name='muscle_stimulation', full_name='sensationdriver.Message.muscle_stimulation', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='loadPattern', full_name='sensationdriver.Message.loadPattern', index=3,
+      name='load_pattern', full_name='sensationdriver.Message.load_pattern', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='playPattern', full_name='sensationdriver.Message.playPattern', index=4,
+      name='play_pattern', full_name='sensationdriver.Message.play_pattern', index=4,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -260,20 +398,28 @@ _MESSAGE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=287,
-  serialized_end=650,
+  serialized_start=720,
+  serialized_end=1086,
 )
 
-_VIBRATION.fields_by_name['region'].enum_type = _VIBRATION_REGION
+_VIBRATION.fields_by_name['target_region'].enum_type = _VIBRATION_REGION
 _VIBRATION_REGION.containing_type = _VIBRATION;
+_TRACK_KEYFRAME_POINT.containing_type = _TRACK_KEYFRAME;
+_TRACK_KEYFRAME.fields_by_name['control_point'].message_type = _TRACK_KEYFRAME_POINT
+_TRACK_KEYFRAME.fields_by_name['in_tangent_start'].message_type = _TRACK_KEYFRAME_POINT
+_TRACK_KEYFRAME.fields_by_name['out_tangent_end'].message_type = _TRACK_KEYFRAME_POINT
+_TRACK_KEYFRAME.containing_type = _TRACK;
+_TRACK.fields_by_name['region'].enum_type = _VIBRATION_REGION
+_LOADPATTERN.fields_by_name['tracks'].message_type = _TRACK
 _MESSAGE.fields_by_name['type'].enum_type = _MESSAGE_MESSAGETYPE
 _MESSAGE.fields_by_name['vibration'].message_type = _VIBRATION
-_MESSAGE.fields_by_name['muscleStimulation'].message_type = _MUSCLESTIMULATION
-_MESSAGE.fields_by_name['loadPattern'].message_type = _LOADPATTERN
-_MESSAGE.fields_by_name['playPattern'].message_type = _PLAYPATTERN
+_MESSAGE.fields_by_name['muscle_stimulation'].message_type = _MUSCLESTIMULATION
+_MESSAGE.fields_by_name['load_pattern'].message_type = _LOADPATTERN
+_MESSAGE.fields_by_name['play_pattern'].message_type = _PLAYPATTERN
 _MESSAGE_MESSAGETYPE.containing_type = _MESSAGE;
 DESCRIPTOR.message_types_by_name['Vibration'] = _VIBRATION
 DESCRIPTOR.message_types_by_name['MuscleStimulation'] = _MUSCLESTIMULATION
+DESCRIPTOR.message_types_by_name['Track'] = _TRACK
 DESCRIPTOR.message_types_by_name['LoadPattern'] = _LOADPATTERN
 DESCRIPTOR.message_types_by_name['PlayPattern'] = _PLAYPATTERN
 DESCRIPTOR.message_types_by_name['Message'] = _MESSAGE
@@ -288,6 +434,22 @@ MuscleStimulation = _reflection.GeneratedProtocolMessageType('MuscleStimulation'
     {
       'DESCRIPTOR': _MUSCLESTIMULATION,
       # @@protoc_insertion_point(class_scope:sensationdriver.MuscleStimulation)
+    })
+
+Track = _reflection.GeneratedProtocolMessageType('Track', (_message.Message,),
+    {
+      'DESCRIPTOR': _TRACK,
+      'Keyframe': _reflection.GeneratedProtocolMessageType('Keyframe', (_message.Message,),
+          {
+            'DESCRIPTOR': _TRACK_KEYFRAME,
+            'Point': _reflection.GeneratedProtocolMessageType('Point', (_message.Message,),
+                {
+                  'DESCRIPTOR': _TRACK_KEYFRAME_POINT,
+                  # @@protoc_insertion_point(class_scope:sensationdriver.Track.Keyframe.Point)
+                }),
+            # @@protoc_insertion_point(class_scope:sensationdriver.Track.Keyframe)
+          }),
+      # @@protoc_insertion_point(class_scope:sensationdriver.Track)
     })
 
 LoadPattern = _reflection.GeneratedProtocolMessageType('LoadPattern', (_message.Message,),

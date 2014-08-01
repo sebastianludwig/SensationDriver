@@ -7,7 +7,7 @@ message Vibration {
     LEFT_UPPER_ARM = 2;
   }
 
-  required Region region = 1;
+  required Region target_region = 1;
   required int32 actor_index = 2;
   required float intensity = 3;
   optional int32 priority = 4 [default=100];

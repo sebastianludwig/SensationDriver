@@ -12,7 +12,7 @@ if len(sys.argv) < 5:
 
 
 vibration = sensationprotocol.Vibration()
-vibration.region = int(sys.argv[2])
+vibration.target_region = int(sys.argv[2])
 vibration.actor_index = int(sys.argv[3])
 vibration.intensity = float(sys.argv[4])
 if len(sys.argv) >= 6:
