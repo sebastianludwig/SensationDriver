@@ -48,7 +48,7 @@ class Element(object):
 
     @asyncio.coroutine
     def _process(self, data):
-        return None
+        return data
 
     @asyncio.coroutine
     def process(self, data):
