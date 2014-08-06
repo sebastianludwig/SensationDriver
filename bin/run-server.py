@@ -36,7 +36,7 @@ def main():
         loop.add_signal_handler(sig, loop.stop)
 
 
-    actor_config_path = project.relative_path('conf', 'actor_conf.yaml')
+    actor_config_path = project.relative_path('conf', 'actor_conf.json')
 
     server = sensationdriver.Server(loop=loop, logger=logger)
     server.handler = messages.Parser() >> messages.Logger() >> [messages.TypeFilter(sensationprotocol.Message.VIBRATION) >> handler.Vibration(actor_config_path, logger=logger),
