@@ -74,17 +74,21 @@ end
 
 desc "Run unit tests"
 task :test do
-    ip = nil
-
-    fsevent = FSEvent.new
-    options = {:latency => 5, :no_defer => true }
-    fsevent.watch sibling_path('test'), options do |directories|
-        Dir.chdir(sibling_path('test')) do
-            files = Dir.glob('*.py').map { |f| File.basename(f) }
-            puts `#{PYTHON} -m unittest -v #{files.join(' ')}`
-        end
+    Dir.chdir(sibling_path('test')) do
+        files = Dir.glob('*.py').map { |f| File.basename(f) }
+        puts `#{PYTHON} -m unittest -v #{files.join(' ')}`
     end
-    fsevent.run
+end
+
+namespace :test do
+    task :watch => :test do
+        fsevent = FSEvent.new
+        options = {:latency => 5, :no_defer => true }
+        fsevent.watch sibling_path('test'), options do |directories|
+            `rake -f #{__FILE__} test`
+        end
+        fsevent.run
+    end
 end
 
 namespace :dependencies do
