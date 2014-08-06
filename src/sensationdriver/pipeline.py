@@ -61,3 +61,12 @@ class Element(object):
                 yield from successor.process(result)
         except TerminateProcessing:
             pass
+
+class Dispatcher(Element):
+    def __init__(self, target, downstream=None, logger=None):
+        super().__init__(downstream=downstream, logger=logger)
+        self.target = target
+
+    @asyncio.coroutine
+    def _process(self, message):
+        return self.target(message)
