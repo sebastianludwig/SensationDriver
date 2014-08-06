@@ -36,7 +36,6 @@ class TypeFilter(pipeline.Element):
         if message.type != self.message_type:
             raise pipeline.TerminateProcessing()
 
-        parts = message.MessageType.Name(self.message_type).split('_')
-        attribute = parts[0].lower() + ''.join(x.title() for x in parts[1:])
+        attribute = message.MessageType.Name(self.message_type).lower()
 
         return getattr(message, attribute)

@@ -36,7 +36,7 @@ message Message {
     required MessageType type = 1;
 
     optional Vibration vibration = 2;
-    optional MuscleStimulation muscleStimulation = 3;
-    optional LoadPattern loadPattern = 4;
-    optional PlayPattern playPattern = 5;
+    optional MuscleStimulation muscle_stimulation = 3;
+    optional LoadPattern load_pattern = 4;
+    optional PlayPattern play_pattern = 5;
 }
