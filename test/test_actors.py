@@ -1,18 +1,10 @@
-import os
-import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'src'))
-del os
-#del sys
-
-def log(*text):
-    print('\n', text, file=sys.stderr)
-
-import unittest
-import asyncio
 import time
+
+from utils import *
 
 from sensationdriver.actors import PrioritizedIntensity
 from sensationdriver.actors import VibrationMotor
+
 
 class TestPrioritizedIntensity(unittest.TestCase):
 
@@ -65,15 +57,8 @@ class TestPrioritizedIntensity(unittest.TestCase):
         self.intensity.set(2, 11)
         self.assertEqual(self.intensity.top_priority(), 11)
 
-def async_test(f):
-    def wrapper(*args, **kwargs):
-        coro = asyncio.coroutine(f)
-        future = coro(*args, **kwargs)
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(future)
-    return wrapper
 
-class TestVibrationMotor(unittest.TestCase):
+class TestVibrationMotor(AsyncTestCase):
 
     class MockDriver(object):
         def __init__(self):
@@ -89,20 +74,10 @@ class TestVibrationMotor(unittest.TestCase):
             self.calls.append(((current_time - self.start_time), self.intensity))
 
     def setUp(self):
-        self.loop = asyncio.get_event_loop()
+        super().setUp()
 
         self.driver = TestVibrationMotor.MockDriver()
         self.motor = VibrationMotor(self.driver, 0)
-
-        self.tasks = []
-
-    def run_async(self, coro):
-        task = asyncio.Task(coro)
-        self.tasks.append(task)
-
-    @asyncio.coroutine
-    def wait_for_async(self):
-        yield from asyncio.gather(*self.tasks)
 
     @async_test
     def test_direct_set(self):
