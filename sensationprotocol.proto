@@ -17,12 +17,31 @@ message MuscleStimulation {
 
 }
 
-message LoadPattern {
+message Track {
+    message Keyframe {
+        message Point {
+            required float time = 1;
+            required float value = 2;
+        }
 
+        required Point control_point = 1;
+        optional Point in_tangent_start = 2;
+        optional Point out_tangent_end = 3;
+    }
+
+    required Vibration.Region region = 1;
+    required int32 actor_index = 2;
+    repeated Keyframe keyframes = 3;
+}
+
+message LoadPattern {
+    required string identifier = 1;
+    repeated Track tracks = 2;
 }
 
 message PlayPattern {
-
+    required string identifier = 1;
+    optional int32 priority =  2 [default=80];
 }
 
 message Message {
