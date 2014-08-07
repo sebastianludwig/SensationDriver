@@ -11,6 +11,7 @@ class Server(object):
         self.handler = None
         self._server = None     # asyncio.Server
         self._clients = {}      # asyncio.Task -> (asyncio.StreamReader, asyncio.StreamWriter)
+        self._workers = set()   # asyncio.Task, each running handler.process()
 
     def _accept_client(self, client_reader, client_writer):
         if not self._clients and self.handler is not None:               # first client connects
@@ -38,6 +39,14 @@ class Server(object):
 
     @asyncio.coroutine
     def _handle_client(self, client_reader, client_writer):
+        def worker_finished(task):
+            if task.exception():
+                ex = task.exception()
+                output = traceback.format_exception(ex.__class__, ex, ex.__traceback__)
+                self.logger.critical(''.join(output))
+
+            self._workers.remove(task)
+
         client_ip = self.client_ip(client_writer)
         self.logger.info("connection from {0}".format(client_ip))
         try:
@@ -48,8 +57,11 @@ class Server(object):
                 message = yield from client_reader.readexactly(message_size)
 
                 if self.handler is not None:
-                    # HINT this could (probably?) be parallelized by creating a task -> multiple messages would be processed in parallel
-                    yield from self.handler.process(message)
+                    # start async task to process message
+                    # TODO use create_task (see above)
+                    worker = asyncio.Task(self.handler.process(message), loop=self._loop)
+                    worker.add_done_callback(worker_finished)
+                    self._workers.add(worker)
         except asyncio.CancelledError:
             self.logger.info('disconnecting client %s', client_ip)
         except asyncio.IncompleteReadError:
@@ -66,11 +78,22 @@ class Server(object):
         if self._server is None:
             return
 
-        for task in self._clients:
-            task.cancel()
+        # wait for worker to finish
+        if self._workers:
+            for task in self._workers:
+                task.cancel()
+
+            done, pending = self._loop.run_until_complete(asyncio.wait(self._workers, loop=self._loop, timeout=2))
+
+            if pending:
+                self.logger.error("could not cancel processing of %d messages", len(pending))
+
 
         # wait for clients to be disconnected
         if self._clients:
+            for task in self._clients:
+                task.cancel()
+
             done, pending = self._loop.run_until_complete(asyncio.wait(self._clients.keys(), loop=self._loop, timeout=2))
 
             if pending:
