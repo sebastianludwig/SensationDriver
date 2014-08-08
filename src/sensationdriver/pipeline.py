@@ -69,4 +69,8 @@ class Dispatcher(Element):
 
     @asyncio.coroutine
     def _process(self, message):
-        return self.target(message)
+        result = self.target(message)
+        if asyncio.iscoroutine(result):
+            yield from result
+        return result
+
