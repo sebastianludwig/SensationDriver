@@ -195,6 +195,3 @@ class TestVibrationMotor(AsyncTestCase):
         self.assertEqual(len(self.driver.calls), 2)
         self.assertEqual(self.motor.intensity(), 0.8)
 
-
-if __name__ == '__main__':
-    unittest.main()
