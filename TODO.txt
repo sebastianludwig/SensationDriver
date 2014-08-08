@@ -1,10 +1,3 @@
-Treiber von MessageHandler trennen
-  eigener loop -> Hardware und Netzwerk blocken sich nicht gegenseitig, max Frequenz der Hardware ausnutzen, keine unnötigen Updates, wenn zwei Netzwerk updates kommen, während HW-Update noch läuft
-    - vllt so auch 0.5->0.3-Anlaufproblem lösbar?
-  buffer mit copy on read, ggf mehr Metadaten speichern um zu wissen, was man aktualisieren muss (max. shift bei SPI - irrelevant...)
-Pattern-Designer sollte Patterns als Protobuf-Nachrichten persistieren
-  Animation curves mit Kontrollpunkten (Zeitpunkt, Tangente, Tangentenmodus)
-  Pattern zu Server übertragen, abspielbar machen mit Skalierungs-Faktor
 Dome thingie with paintball guns
 Eisenkern Conrad 534439
 Improvements
@@ -97,6 +90,7 @@ proto: Wrapped message in common container message (0170fd8)
 py: Made each pipeline pass a coroutine (d5317f1)
 rake: Compiling .proto -> .cs (6fb3fc9)
 unity: Pattern editor (e33f5c7)
+py: parallel processing of messages (4c80b05)
 
 
 
