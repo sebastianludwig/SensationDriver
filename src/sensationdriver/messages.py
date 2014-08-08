@@ -27,7 +27,7 @@ class Logger(pipeline.Element):
 
 
 class TypeFilter(pipeline.Element):
-    def __init__(self, message_type=None, downstream=None, logger=None):
+    def __init__(self, message_type, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)
         self.message_type = message_type
 
