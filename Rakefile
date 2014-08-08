@@ -73,19 +73,20 @@ task :compile do
 end
 
 desc "Run unit tests"
-task :test do
+task :test, :pattern do |t, args|
     Dir.chdir(sibling_path('test')) do
-        files = Dir.glob('*.py').map { |f| File.basename(f) }
+        pattern = args.pattern ? "*#{args.pattern}*.py" : '*.py'
+        files = Dir.glob(pattern).map { |f| File.basename(f) }
         puts `#{PYTHON} -m unittest -v #{files.join(' ')}`
     end
 end
 
 namespace :test do
-    task :watch => :test do
+    task :watch, [:pattern] => :test do |t, args|
         fsevent = FSEvent.new
         options = {:latency => 5, :no_defer => true }
         fsevent.watch sibling_path('test'), options do |directories|
-            `rake -f #{__FILE__} test`
+            `rake -f #{__FILE__} test[#{args.pattern}]`
         end
         fsevent.run
     end
