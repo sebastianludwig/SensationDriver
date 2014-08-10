@@ -6,6 +6,7 @@ from . import platform
 from . import pipeline
 from .protocol import sensationprotocol_pb2 as sensationprotocol
 from .actors import VibrationMotor
+from .patterns import Track
 
 if platform.is_raspberry():
     from adafruit import pca9685
@@ -78,3 +79,43 @@ class Vibration(pipeline.Element):
             self.logger.debug("No actor configured with index %d in region %s", vibration.actor_index, sensationprotocol.Vibration.Region.Name(vibration.target_region))
 
         return vibration
+
+class Patterns(object):
+    def __init__(self, inlet, loop=None, logger=None):
+        self.logger = logger if logger is not None else logging.getLogger('root')
+        self._loop = loop if loop is not None else asyncio.get_event_loop()
+
+        self.inlet = inlet
+        self.patterns = {}      # identifier -> [Tracks]
+        self.samling_frequency = 10
+
+    def load(self, pattern):
+        self.logger.info("loaded pattern %s", pattern.identifier)
+        self.patterns[pattern.identifier] = pattern.tracks
+        return pattern
+
+    @asyncio.coroutine
+    def play(self, pattern):
+        self.logger.info("play pattern %s", pattern.identifier)
+        if not pattern.identifier in self.patterns:
+            self.logger.warning("Unknown pattern to play: %s", pattern.identifier)
+            return pattern
+
+        tracks = []
+        for track in self.patterns[pattern.identifier]:
+            tracks.append(Track(track.region, track.actor_index, track.keyframes))
+
+        delta_time = 0
+        while tracks:
+            for track in tracks:
+                value = track.advance(delta_time)
+
+                self.logger.info("would create message for %d: %.2f", track.actor_index, track.value)
+
+            tracks = [t for t in tracks if not t.is_finished]
+            start = self._loop.time()
+            yield from asyncio.sleep(1/self.samling_frequency)
+            delta_time = self._loop.time() - start
+
+
+        return message
