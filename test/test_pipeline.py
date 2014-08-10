@@ -1,7 +1,10 @@
+import time
+
 from utils import *
 
 from sensationdriver.pipeline import Element
 from sensationdriver.pipeline import Dispatcher
+from sensationdriver.pipeline import Parallelizer
 from sensationdriver.pipeline import TerminateProcessing
 
 class MemoryElement(Element):
@@ -186,4 +189,62 @@ class TestDispatcher(AsyncTestCase):
 
         self.assertEqual(self.two_times.input_number, 3)
         self.assertEqual(third.processed_number, 6)
+
+
+class TestParallelizer(AsyncTestCase):
+    class WaitingRecorder(Element):
+        def __init__(self, delay, downstream=None, logger=None):
+            super().__init__(downstream=downstream, logger=logger)
+            self.delay = delay
+            self.execution_times = []
+
+        @asyncio.coroutine
+        def _process(self, data):
+            yield from asyncio.sleep(self.delay)
+            self.execution_times.append(time.time())
+            return data
+
+
+    @async_test
+    def test_serial_parallelization(self):
+        recorder = self.WaitingRecorder(1)
+
+        parallelizer = Parallelizer()
+        chain = parallelizer >> recorder
+
+        yield from chain.process(1)
+        yield from chain.process(2)
+
+        yield from asyncio.wait(parallelizer._workers, loop=self.loop, timeout=2)
+
+        self.assertAlmostEqual(recorder.execution_times[0], recorder.execution_times[1], delta=0.001)
+
+    @async_test
+    def test_multiplexing_parallelization(self):
+        recorder1 = self.WaitingRecorder(1)
+        recorder2 = self.WaitingRecorder(1)
+
+        parallelizer = Parallelizer()
+        chain = parallelizer >> [recorder1, recorder2]
+
+        yield from chain.process(4)
+
+        yield from asyncio.wait(parallelizer._workers, loop=self.loop, timeout=2)
+
+        self.assertAlmostEqual(recorder1.execution_times[0], recorder2.execution_times[0], delta=0.001)
+
+    @async_test
+    def test_tear_down_cancels_tasks(self):
+        recorder = self.WaitingRecorder(5)
+
+        parallelizer = Parallelizer(logger=TestLogger())
+        chain = parallelizer >> recorder
+
+        yield from chain.process(1)
+        start = time.time()
+        yield from chain.tear_down()
+        duration = time.time() - start
+
+        self.assertLess(duration, 0.1)
+        self.assertFalse(recorder.execution_times)
 

@@ -9,7 +9,7 @@ import asyncio
 def log(*text):
     print('\n', *text, file=sys.stderr)
 
-class Logger(object):
+class TestLogger(object):
     def debug(self, *args):
         log("Debug: ", *args)
 

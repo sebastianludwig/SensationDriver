@@ -87,3 +87,48 @@ class Dispatcher(Element):
             yield from result
         return result
 
+
+class Parallelizer(Element):
+    def __init__(self, loop=None, downstream=None, logger=None):
+        super().__init__(downstream=downstream, logger=logger)
+        self._loop = loop if loop is not None else asyncio.get_event_loop()
+
+        self._workers = set()   # asyncio.Task, each running process() of a successor
+        self._torn_down = False
+
+    def _set_up(self):
+        self._torn_down = False
+
+    @asyncio.coroutine
+    def _tear_down(self):
+        self._torn_down = True
+
+        # wait for worker to finish
+        if not self._workers:
+            return
+
+        for task in self._workers:
+            task.cancel()
+
+        done, pending = yield from asyncio.wait(self._workers, loop=self._loop, timeout=2)
+
+        if pending:
+            self.logger.error("could not cancel processing of %d messages", len(pending))
+
+
+    @asyncio.coroutine
+    def process(self, data):
+        def worker_finished(task):
+            if not (self._torn_down and task.cancelled()) and task.exception():
+                ex = task.exception()
+                output = traceback.format_exception(ex.__class__, ex, ex.__traceback__)
+                self.logger.critical(''.join(output))
+
+            self._workers.remove(task)
+
+        for successor in self._successors():
+            # start async task to process message
+            # TODO use self._loop.create_task once Python 3.4.2 is available on OS X via brew
+            worker = asyncio.Task(successor.process(data), loop=self._loop)
+            worker.add_done_callback(worker_finished)
+            self._workers.add(worker)

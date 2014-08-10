@@ -14,6 +14,7 @@ sys.path.append(project.relative_path('src'))
 del sys
 
 import sensationdriver
+from sensationdriver import pipeline
 from sensationdriver import messages
 from sensationdriver import handler
 from sensationdriver import protocol
@@ -39,8 +40,11 @@ def main():
     actor_config_path = project.relative_path('conf', 'actor_conf.json')
 
     server = sensationdriver.Server(loop=loop, logger=logger)
-    server.handler = messages.Parser() >> messages.Logger() >> [messages.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config_path, logger=logger),
-                                                                messages.TypeFilter(protocol.Message.LOAD_PATTERN)]
+
+    server.handler = pipeline.Parallelizer(loop=loop) >> messages.Parser() >> messages.Logger() >> [messages.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config_path, logger=logger),
+                                                                                                   messages.TypeFilter(protocol.Message.LOAD_PATTERN)]
+
+
     for element in server.handler:
         element.logger = logger
 
