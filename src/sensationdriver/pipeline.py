@@ -62,14 +62,15 @@ class Element(object):
         except TerminateProcessing:
             pass
 
+
 class Dispatcher(Element):
     def __init__(self, target, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)
         self.target = target
 
     @asyncio.coroutine
-    def _process(self, message):
-        result = self.target(message)
+    def _process(self, data):
+        result = self.target(data)
         if asyncio.iscoroutine(result):
             yield from result
         return result
