@@ -31,20 +31,32 @@ class Element(object):
             yield self.downstream
 
     def _set_up(self):
+        """Subclasses my decorate this as a coroutine"""
         pass
 
+    @asyncio.coroutine
     def set_up(self):
-        self._set_up()
+        if asyncio.iscoroutinefunction(self._set_up):
+            yield from self._set_up()
+        else:
+            self._set_up()
+
         for successor in self._successors():
-            successor.set_up()
+            yield from successor.set_up()
 
     def _tear_down(self):
+        """Subclasses my decorate this as a coroutine"""
         pass
 
+    @asyncio.coroutine
     def tear_down(self):
         for successor in self._successors():
-            successor.tear_down()
-        self._tear_down()
+            yield from successor.tear_down()
+
+        if asyncio.iscoroutinefunction(self._tear_down):
+            yield from self._tear_down()
+        else:
+            self._tear_down()
 
     @asyncio.coroutine
     def _process(self, data):

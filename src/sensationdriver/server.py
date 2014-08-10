@@ -13,9 +13,10 @@ class Server(object):
         self._clients = {}      # asyncio.Task -> (asyncio.StreamReader, asyncio.StreamWriter)
         self._workers = set()   # asyncio.Task, each running handler.process()
 
+    @asyncio.coroutine
     def _accept_client(self, client_reader, client_writer):
         if not self._clients and self.handler is not None:               # first client connects
-            self.handler.set_up()
+            yield from self.handler.set_up()
 
         def client_disconnected(task):
             if task.exception():
@@ -25,7 +26,7 @@ class Server(object):
 
             del self._clients[task]
             if not self._clients and self.handler is not None:           # last client disconnected
-                self.handler.tear_down()
+                yield from self.handler.tear_down()
 
         # schedule a new Task to handle this specific client connection
         # TODO use self._loop.create_task once Python 3.4.2 is available on OS X via brew

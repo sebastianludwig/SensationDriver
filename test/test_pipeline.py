@@ -24,6 +24,7 @@ class MemoryElement(Element):
         self.processed_number = number
         return number + 1
 
+
 class TestElement(AsyncTestCase):
     def test_chaining(self):
         first = Element()
@@ -52,6 +53,7 @@ class TestElement(AsyncTestCase):
             i += 1
         self.assertEqual(i, 4)
 
+    @async_test
     def test_set_up_propagates(self):
         first = MemoryElement()
         second = MemoryElement()
@@ -59,11 +61,12 @@ class TestElement(AsyncTestCase):
         fourth = MemoryElement()
 
         chain = first >> second >> third >> fourth
-        chain.set_up()
+        yield from chain.set_up()
 
         for element in chain:
             self.assertEqual(element.set_up_called_counter, 1)
 
+    @async_test
     def test_tear_down_propagates(self):
         first = MemoryElement()
         second = MemoryElement()
@@ -71,7 +74,7 @@ class TestElement(AsyncTestCase):
         fourth = MemoryElement()
 
         chain = first >> second >> third >> fourth
-        chain.tear_down()
+        yield from chain.tear_down()
 
         for element in chain:
             self.assertEqual(element.tear_down_called_counter, 1)
@@ -153,6 +156,7 @@ class TestElement(AsyncTestCase):
         self.assertEqual(first.process_called_counter, 1)
         self.assertEqual(second.process_called_counter, 1)
         self.assertEqual(third.process_called_counter, 0)
+
 
 class TestDispatcher(AsyncTestCase):
     class TwoTimes:
