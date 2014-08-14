@@ -3,7 +3,7 @@
         "regions": [
             {
                 "name": "LEFT_HAND",
-                "driver_address": 0x40,
+                "driver_address": "0x40",
                 "actors": [
                     {
                         "position": "thumb",
@@ -39,6 +39,32 @@
                         "position": "hand außen",
                         "index": 6,
                         "outlet": 6
+                    }
+                ]
+            },
+            {
+                "name": "LEFT_FOREARM",
+                "driver_address": "0x41",
+                "actors": [
+                    {
+                        "position": "außen unten",
+                        "index": 0,
+                        "outlet": 0
+                    },
+                    {
+                        "position": "innen unten",
+                        "index": 1,
+                        "outlet": 1
+                    },
+                    {
+                        "position": "außen mitte",
+                        "index": 2,
+                        "outlet": 2
+                    },
+                    {
+                        "position": "innen mitte",
+                        "index": 3,
+                        "outlet": 3
                     }
                 ]
             }
