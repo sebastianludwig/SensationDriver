@@ -6,12 +6,11 @@ import yaml
 
 import asyncio
 import signal
-import functools
+import sys
 
 import project
-import sys
+
 sys.path.append(project.relative_path('src'))
-del sys
 
 import sensationdriver
 from sensationdriver import pipeline
@@ -27,6 +26,12 @@ with open(project.relative_path('conf', 'logging_conf.yaml')) as f:
     logging.config.dictConfig(yaml.load(f))
 
 logger = logging.getLogger('default')
+
+
+def excepthook(*args):
+  logger.critical('Uncaught exception:', exc_info=args)
+
+sys.excepthook = excepthook
 
 
 def main():
