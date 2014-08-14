@@ -103,7 +103,7 @@ end
 
 namespace :remote do
     desc "Connect to the Raspberry via SSH"
-    task :connect do
+    task :login do
         exec(ssh_command)
     end
 
