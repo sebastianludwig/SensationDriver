@@ -70,7 +70,7 @@ class TestVibrationMotor(AsyncTestCase):
             current_time = time.time()
             if not self.start_time:
                 self.start_time = current_time
-            self.intensity = intensity / 4096
+            self.intensity = intensity / 4095
             self.calls.append(((current_time - self.start_time), self.intensity))
 
     def setUp(self):
@@ -86,6 +86,7 @@ class TestVibrationMotor(AsyncTestCase):
         yield from update
 
         self.assertEqual(len(self.driver.calls), 1)
+        self.assertEqual(self.driver.calls[0][1], 1)
 
     @async_test
     def test_minimal_change_ingored(self):

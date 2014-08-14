@@ -78,7 +78,7 @@ class VibrationMotor(object):
             return
         self.logger.info("setting %s to %.3f", self.position, value)
         self.__current_intensity = value
-        self.driver.setPWM(self.outlet, 0, int(self.__current_intensity * 4096))
+        self.driver.setPWM(self.outlet, 0, int(self.__current_intensity * 4095))
         self._running_since = time.time() if value >= self._SENSITIVITY else None
 
     def intensity(self):
