@@ -55,13 +55,12 @@ def main():
     for element in server.handler:
         element.logger = logger
 
-    server.start()
-
     try:
-        loop.run_forever()
+        with server:
+            loop.run_forever()
     finally:
-        server.stop()
         loop.close()
+
 
 
 if __name__ == '__main__':

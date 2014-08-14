@@ -31,28 +31,28 @@ class TestServer(unittest.TestCase):
         server.handler = handler2
         self.assertEqual(handler1.tear_down_called_counter, 1)
 
-    def test_handler_tear_down_called_on_stop(self):
+    def test_handler_torn_down_after_server_usage(self):
         server = Server()
         handler = self.MemoryHandler()
         server.handler = handler
-        server.start()
-        server.stop()
+        with server:
+            pass
         self.assertEqual(handler.tear_down_called_counter, 1)
 
     def test_handler_set_up_called_on_restart(self):
         server = Server()
         handler = self.MemoryHandler()
         server.handler = handler
-        server.start()
-        server.stop()
-        server.start()
-        self.assertEqual(handler.set_up_called_counter, 2)
-        server.stop()
+        with server:
+            pass
+
+        with server:
+            self.assertEqual(handler.set_up_called_counter, 2)
+
 
     def test_handler_set_up_not_called_twice_on_start(self):
         server = Server()
         handler = self.MemoryHandler()
         server.handler = handler
-        server.start()
-        self.assertEqual(handler.set_up_called_counter, 1)
-        server.stop()
+        with server:
+            self.assertEqual(handler.set_up_called_counter, 1)

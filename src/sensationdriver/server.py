@@ -8,6 +8,9 @@ class Server(object):
         self.logger = logger if logger is not None else logging.getLogger('root')
         self._loop = loop if loop is not None else asyncio.get_event_loop()
 
+        self.ip = ''
+        self.port = 10000
+
         self._handler = None
         self._handler_set_up = False
         self._server = None     # asyncio.Server
@@ -77,25 +80,24 @@ class Server(object):
         except asyncio.IncompleteReadError:
             self.logger.info('client %s disconnected', client_ip)
 
-    # TODO change to __enter__ and __exit__
-    def start(self, ip='', port=10000):
+    def __enter__(self):
         """Ought to be called with no asyncio event loop running"""
 
         self._set_up_handler()
 
         # start asyncio.Server
-        future_server = asyncio.start_server(self._accept_client, ip, port, loop=self._loop)
+        future_server = asyncio.start_server(self._accept_client, self.ip, self.port, loop=self._loop)
         # wait until server socket is set up
         self._server = self._loop.run_until_complete(future_server)
-        self.logger.info('server started, listening on %s:%s', ip, port)
+        self.logger.info('server started, listening on %s:%s', self.ip, self.port)
 
-    def stop(self):
+    def __exit__(self, type, value, traceback):
         """Ought to be called with no asyncio event loop running"""
 
         self._tear_down_handler()
 
         if self._server is None:
-            return
+            return False
 
         # wait for clients to be disconnected
         if self._clients:
@@ -113,3 +115,5 @@ class Server(object):
         self._loop.run_until_complete(self._server.wait_closed())
         self._server = None
         self.logger.info('server stopped')
+
+        return False

@@ -1,5 +1,3 @@
-- with server
-- assert logging
 - auto scale bezier / track
 Dome thingie with paintball guns
 Eisenkern Conrad 534439
