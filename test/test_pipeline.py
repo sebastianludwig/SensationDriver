@@ -234,10 +234,10 @@ class TestParallelizer(AsyncTestCase):
         self.assertAlmostEqual(recorder1.execution_times[0], recorder2.execution_times[0], delta=0.001)
 
     @async_test
-    def test_tear_down_cancels_tasks(self):
+    def test_tear_down_cancels_tasks(self):     # HINT this test doesn't really test for cancellation - only that tear_down() exits fast.. maybe also assert _workers is empty?
         recorder = self.WaitingRecorder(5)
 
-        parallelizer = Parallelizer(logger=TestLogger())
+        parallelizer = Parallelizer()
         chain = parallelizer >> recorder
 
         yield from chain.process(1)
@@ -248,3 +248,22 @@ class TestParallelizer(AsyncTestCase):
         self.assertLess(duration, 0.1)
         self.assertFalse(recorder.execution_times)
 
+    @async_test
+    def test_exceptions_are_logged(self):
+        class TestException(Exception):
+            pass
+
+        class ExceptionElement(Element):
+            @asyncio.coroutine
+            def _process(self, data):
+                raise TestException()
+
+        logger = TestLogger(console=False, capture=True)
+        parallelizer = Parallelizer(logger=logger)
+        chain = parallelizer >> ExceptionElement()
+
+        yield from chain.process(1)
+
+        yield from asyncio.wait(parallelizer._workers, loop=self.loop, timeout=2)
+
+        self.assertTrue(any("raise TestException()" in line for line in logger.log))

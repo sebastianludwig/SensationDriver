@@ -10,17 +10,32 @@ def log(*text):
     print('\n', *text, file=sys.stderr)
 
 class TestLogger(object):
+    def __init__(self, console=True, capture=False):
+        self._print = console
+        self._capture = capture
+        self.log = []
+
+    def _log(self, prefix, args):
+        message = "{0}: {1}".format(prefix, ' '.join(map(str, args)))
+        if self._print:
+            log(message)
+        if self._capture:
+            self.log.append(message)
+
     def debug(self, *args):
-        log("Debug: ", *args)
+        self._log('Debug', args)
 
     def info(self, *args):
-        log("Info: ", *args)
+        self._log('Info', args)
 
     def warning(self, *args):
-        log("Warning: ", *args)
+        self._log('Warning', args)
 
     def error(self, *args):
-        log("Error: ", *args)
+        self._log('Error', args)
+
+    def critical(self, *args):
+        self._log('Critical', args)
 
 
 def async_test(f):
