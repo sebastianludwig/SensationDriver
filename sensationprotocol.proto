@@ -29,7 +29,7 @@ message Track {
         optional Point out_tangent_end = 3;
     }
 
-    required Vibration.Region region = 1;
+    required Vibration.Region target_region = 1;
     required int32 actor_index = 2;
     repeated Keyframe keyframes = 3;
 }

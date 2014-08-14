@@ -1,7 +1,11 @@
+from .protocol import sensationprotocol_pb2 as sensationprotocol
+
+# HINT this class may be specialized as VibrationTrack one day
 class Track(object):
-    def __init__(self, region, actor_index, keyframes):
-        self.region = region
+    def __init__(self, target_region, actor_index, priority, keyframes):
+        self.target_region = target_region
         self.actor_index = actor_index
+        self.priority = priority
 
         bezier_path = BezierPath(keyframes)
         self.timeline = bezier_path.timeline()
@@ -27,8 +31,23 @@ class Track(object):
 
         return self.value
 
+    def create_message(self):
+        vibration = sensationprotocol.Vibration()
+        vibration.target_region = self.target_region
+        vibration.actor_index = self.actor_index
+        vibration.intensity = self.value
+        vibration.priority = self.priority
+
+        message = sensationprotocol.Message()
+        message.type = sensationprotocol.Message.VIBRATION
+        message.vibration.CopyFrom(vibration)
+
+        return message
+
 
 class BezierPath(object):
+    # TODO get min and max values http://stackoverflow.com/questions/2587751/an-algorithm-to-find-bounding-box-of-closed-bezier-curves
+
     def __init__(self, keyframes):
         self._keyframes = keyframes
 

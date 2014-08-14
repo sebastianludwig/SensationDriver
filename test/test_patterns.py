@@ -19,7 +19,7 @@ class Keyframe(object):
 
 class TestBezierPath(unittest.TestCase):
     def setUp(self):
-        self.logger = Logger()
+        self.logger = TestLogger()
 
     def test_bezier_calculation(self):
         start = Point(0, 0)
@@ -174,7 +174,7 @@ class TestTrack(unittest.TestCase):
                     Keyframe(p3, in_tangent_start=c2, out_tangent_end=c4),
                     Keyframe(p6, in_tangent_start=c5)]
 
-        self.track = Track('region', 'actor_index', keyframes)
+        self.track = Track(target_region='region', actor_index='actor_index', keyframes=keyframes, priority=4)
 
     def test_is_finished(self):
         self.assertFalse(self.track.is_finished)

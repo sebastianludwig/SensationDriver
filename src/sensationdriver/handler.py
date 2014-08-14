@@ -103,19 +103,23 @@ class Patterns(object):
 
         tracks = []
         for track in self.patterns[pattern.identifier]:
-            tracks.append(Track(track.region, track.actor_index, track.keyframes))
+            tracks.append(Track(target_region=track.target_region, actor_index=track.actor_index, priority=pattern.priority, keyframes=track.keyframes))
 
+        self.logger.info("playing %d tracks", len(tracks))
         delta_time = 0
         while tracks:
             for track in tracks:
-                value = track.advance(delta_time)
+                track.advance(delta_time)
 
-                self.logger.info("would create message for %d: %.2f", track.actor_index, track.value)
+                message = track.create_message()
+
+                yield from self.inlet.process(message)
 
             tracks = [t for t in tracks if not t.is_finished]
             start = self._loop.time()
             yield from asyncio.sleep(1/self.samling_frequency)
             delta_time = self._loop.time() - start
 
+        self.logger.info("finished playing pattern %s", pattern.identifier)
 
         return message
