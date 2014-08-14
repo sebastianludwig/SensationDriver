@@ -81,7 +81,7 @@ class Vibration(pipeline.Element):
             actor = self.actors[vibration.target_region][vibration.actor_index]
             yield from actor.set_intensity(vibration.intensity, vibration.priority)
         else:
-            self.logger.debug("No actor configured with index %d in region %s", vibration.actor_index, sensationprotocol.Vibration.Region.Name(vibration.target_region))
+            self.logger.warning("No actor configured with index %d in region %s", vibration.actor_index, sensationprotocol.Vibration.Region.Name(vibration.target_region))
 
         return vibration
 
