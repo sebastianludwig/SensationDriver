@@ -31,15 +31,20 @@ class Vibration(pipeline.Element):
             config = yaml.load(f)
 
         for region in config['vibration']['regions']:
-            if region['driver_address'] not in self.drivers:
-                if not wirebus.I2C.isDeviceAnswering(region['driver_address']):
+            driver_address = region['driver_address']
+            if type(driver_address) is str:
+                driver_address = int(driver_address, 16) if driver_address.startswith('0x') else int(driver_address)
+
+            if driver_address not in self.drivers:
+                if not wirebus.I2C.isDeviceAnswering(driver_address):
                     self.logger.error("No driver found for at address 0x%02X for region %s - ignoring region", region['driver_address'], region['name'])
                     continue
-                driver = pca9685.Driver(region['driver_address'], debug=__debug__, logger=self.logger)
+
+                driver = pca9685.Driver(driver_address, debug=__debug__, logger=self.logger)
                 # TODO use ALLCALL address to set PWM frequency
                 driver.setPWMFreq(1700)                        # Set max frequency to (~1,6kHz) # TODO test different frequencies
-                self.drivers[region['driver_address']] = driver
-            driver = self.drivers[region['driver_address']]
+                self.drivers[driver_address] = driver
+            driver = self.drivers[driver_address]
 
             try:
                 region_index = sensationprotocol.Vibration.Region.Value(region['name'])
