@@ -1,3 +1,6 @@
+- with server
+- assert logging
+- auto scale bezier / track
 Dome thingie with paintball guns
 Eisenkern Conrad 534439
 Improvements
@@ -91,7 +94,8 @@ py: Made each pipeline pass a coroutine (d5317f1)
 rake: Compiling .proto -> .cs (6fb3fc9)
 unity: Pattern editor (e33f5c7)
 py: parallel processing of messages (4c80b05)
-
+py: made parallel processing a pipeline element (961dec5)
+py: pattern loading (7c73b2a) and playback (2a298e9)
 
 
 Glossar
