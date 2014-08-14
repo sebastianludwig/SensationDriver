@@ -8,15 +8,39 @@ class Server(object):
         self.logger = logger if logger is not None else logging.getLogger('root')
         self._loop = loop if loop is not None else asyncio.get_event_loop()
 
-        self.handler = None
+        self._handler = None
+        self._handler_set_up = False
         self._server = None     # asyncio.Server
         self._clients = {}      # asyncio.Task -> (asyncio.StreamReader, asyncio.StreamWriter)
 
-    @asyncio.coroutine
-    def _accept_client(self, client_reader, client_writer):
-        if not self._clients and self.handler is not None:               # first client connects
-            yield from self.handler.set_up()
+    @property
+    def handler(self):
+        return self._handler
 
+    @handler.setter
+    def handler(self, value):
+        """Ought to be called with no asyncio event loop running"""
+        self._tear_down_handler()
+        self._handler = value
+        self._set_up_handler()
+
+    def _set_up_handler(self):
+        if self._handler_set_up or self.handler is None:
+            return
+
+        set_up_future = asyncio.async(self.handler.set_up())
+        self._loop.run_until_complete(set_up_future)
+        self._handler_set_up = True
+
+    def _tear_down_handler(self):
+        if self._handler_set_up == False or self.handler is None:
+            return
+
+        tear_down_future = asyncio.async(self.handler.tear_down())
+        self._loop.run_until_complete(tear_down_future)
+        self._handler_set_up = False
+
+    def _accept_client(self, client_reader, client_writer):
         def client_disconnected(task):
             if task.exception():
                 ex = task.exception()
@@ -24,8 +48,6 @@ class Server(object):
                 self.logger.critical(''.join(output))
 
             del self._clients[task]
-            if not self._clients and self.handler is not None:           # last client disconnected
-                yield from self.handler.tear_down()
 
         # schedule a new Task to handle this specific client connection
         # TODO use self._loop.create_task once Python 3.4.2 is available on OS X via brew
@@ -55,7 +77,12 @@ class Server(object):
         except asyncio.IncompleteReadError:
             self.logger.info('client %s disconnected', client_ip)
 
+    # TODO change to __enter__ and __exit__
     def start(self, ip='', port=10000):
+        """Ought to be called with no asyncio event loop running"""
+
+        self._set_up_handler()
+
         # start asyncio.Server
         future_server = asyncio.start_server(self._accept_client, ip, port, loop=self._loop)
         # wait until server socket is set up
@@ -63,6 +90,10 @@ class Server(object):
         self.logger.info('server started, listening on %s:%s', ip, port)
 
     def stop(self):
+        """Ought to be called with no asyncio event loop running"""
+
+        self._tear_down_handler()
+
         if self._server is None:
             return
 
