@@ -130,6 +130,25 @@ class TestVibrationMotor(AsyncTestCase):
         self.assertAlmostEqual(secondCall[1], self.motor._map_intensity(0.2), delta=0.01)
 
     @async_test
+    def test_warmup_time_accumulates(self):
+        # given the motor is set twice to a value needing warmup
+        self.motor.min_intensity_warmup = 1
+        self.run_async(self.motor.set_intensity(0.1))
+        yield from asyncio.sleep(0.7)
+        self.run_async(self.motor.set_intensity(0.15))
+        yield from asyncio.sleep(0.5)
+
+        # when we set it to another value needing warmup
+        self.run_async(self.motor.set_intensity(0.2))
+
+        yield from self.wait_for_async()
+
+        # then the third value should be set instantly, because the total warmup is already complete
+        self.assertEqual(len(self.driver.calls), 3)
+        thirdCall = self.driver.calls[2]
+        self.assertAlmostEqual(thirdCall[0], 1.2, delta=0.01)
+
+    @async_test
     def test_instant_min(self):
         # given the motor runs long enough fast enough
         delay = self.motor.motor_min_intensity_warmup + 0.1
