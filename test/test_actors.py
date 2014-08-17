@@ -78,6 +78,11 @@ class TestVibrationMotor(AsyncTestCase):
 
         self.driver = TestVibrationMotor.MockDriver()
         self.motor = VibrationMotor(self.driver, 0)
+        self.motor.mapping_curve_degree = 1.5
+        self.motor.motor_min_intensity = 0.3
+        self.motor.motor_min_instant_intensity = 0.5
+        self.motor.motor_min_intensity_warmup = 0.2
+
 
     @async_test
     def test_direct_set(self):
@@ -109,26 +114,34 @@ class TestVibrationMotor(AsyncTestCase):
 
     @async_test
     def test_delayed_update(self):
+        # given a value which requires warmup is set
         self.run_async(self.motor.set_intensity(0.1))
+
+        # when we set another value which requires warmup during warmup
         yield from asyncio.sleep(0.1)
         self.run_async(self.motor.set_intensity(0.2))
 
         yield from self.wait_for_async()
 
+        # then we expect the second value to be set after warmup
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
-        self.assertAlmostEqual(secondCall[0], self.motor._MOTOR_MIN_INTENSITY_WARMUP, delta=0.01)
+        self.assertAlmostEqual(secondCall[0], self.motor.motor_min_intensity_warmup, delta=0.01)
         self.assertAlmostEqual(secondCall[1], self.motor._map_intensity(0.2), delta=0.01)
 
     @async_test
     def test_instant_min(self):
-        delay = self.motor._MOTOR_MIN_INTENSITY_WARMUP + 0.1
+        # given the motor runs long enough fast enough
+        delay = self.motor.motor_min_intensity_warmup + 0.1
         self.run_async(self.motor.set_intensity(1))
         yield from asyncio.sleep(delay)
+
+        # when we set the minimum intensity
         self.run_async(self.motor.set_intensity(0.1))
 
         yield from self.wait_for_async()
 
+        # then we expect an instant setting of the minimum value
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
         self.assertAlmostEqual(secondCall[0], delay, delta=0.01)
@@ -136,26 +149,34 @@ class TestVibrationMotor(AsyncTestCase):
 
     @async_test
     def test_delayed_min(self):
-        delay = self.motor._MOTOR_MIN_INTENSITY_WARMUP - 0.1
+        # given the motor runs a little less than the necessary warmup time on full intensity
+        delay = self.motor.motor_min_intensity_warmup - 0.1
         self.run_async(self.motor.set_intensity(1))
         yield from asyncio.sleep(delay)
+
+        # when we set the minimum intensity
         self.run_async(self.motor.set_intensity(0.1))
 
         yield from self.wait_for_async()
 
+        # then then the minimum intensity is only set after the full warmup time
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
-        self.assertAlmostEqual(secondCall[0], self.motor._MOTOR_MIN_INTENSITY_WARMUP, delta=0.01)
+        self.assertAlmostEqual(secondCall[0], self.motor.motor_min_intensity_warmup, delta=0.01)
         self.assertAlmostEqual(secondCall[1], self.motor._map_intensity(0.1), delta=0.01)
 
     @async_test
     def test_instant_update(self):
+        # given the motor runs a little bit on warmup intensity (to later set minimum intensity)
         self.run_async(self.motor.set_intensity(0.1))
         yield from asyncio.sleep(0.1)
+
+        # when we set full itensity
         self.run_async(self.motor.set_intensity(1))
 
         yield from self.wait_for_async()
 
+        # the motor is set to full itensity immediatly
         self.assertEqual(len(self.driver.calls), 2)
         secondCall = self.driver.calls[1]
         self.assertEqual(secondCall[1], 1)
