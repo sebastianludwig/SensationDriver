@@ -1,4 +1,5 @@
-- auto scale bezier / track
+- name actors + full conf
+- use default settings for min_intensity and so on and allow override in actor_conf
 Dome thingie with paintball guns
 Eisenkern Conrad 534439
 Improvements

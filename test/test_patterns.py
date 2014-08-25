@@ -152,6 +152,44 @@ class TestBezierPath(unittest.TestCase):
             except StopIteration:
                 break
 
+    def test_calculate_bounds(self):
+        p0 = Point(532,333)
+        p1 = Point(117,305)
+        p2 = Point(28,93)
+        p3 = Point(265,42)
+
+        bounds = BezierPath._calculate_bounds(p0, p1, p2, p3)
+
+        self.assertAlmostEqual(bounds['left'], 135.77684049079755)
+        self.assertAlmostEqual(bounds['bottom'], 42)
+        self.assertAlmostEqual(bounds['right'], 532)
+        self.assertAlmostEqual(bounds['top'], 333)
+
+    def test_min_max_value(self):
+        # 0 - 0.3
+        #   0.1325325 - -0.184255
+        #   0.2650649 - 1.161977
+        # 0.3975974 - 1.333954
+        #   0.8650649 - 1.940549
+        #   1.332533 - -0.5553294
+        # 1.8 - 2
+        p0 = Point(0, 0.3)
+        c1 = Point(0.1325325, -0.184255)
+        c2 = Point(0.2650649, 1.161977)
+        p3 = Point(0.3975974, 1.333954)
+        c4 = Point(0.8650649, 1.940549)
+        c5 = Point(1.332533, -0.5553294)
+        p6 = Point(1.8, 2)
+
+        keyframes = [Keyframe(p0, out_tangent_end=c1),
+                    Keyframe(p3, in_tangent_start=c2, out_tangent_end=c4),
+                    Keyframe(p6, in_tangent_start=c5)]
+
+        path = BezierPath(keyframes=keyframes)
+
+        self.assertAlmostEqual(path.max_value, 2)
+        self.assertAlmostEqual(path.min_value, 0.19549810687379637)
+
 
 class TestTrack(unittest.TestCase):
     def setUp(self):
@@ -191,16 +229,16 @@ class TestTrack(unittest.TestCase):
 
     def test_returns_last_value_immediatly(self):
         value = self.track.advance(4)
-        self.assertAlmostEqual(value, 2, delta=0.00001)
+        self.assertAlmostEqual(value, 1, delta=0.00001)
 
     def test_initial_value(self):
-        self.assertAlmostEqual(self.track.value, 0.3, delta=0.000001)
+        self.assertAlmostEqual(self.track.value, 0)
 
     def test_advance(self):
         value = self.track.advance(0.4)
-        self.assertAlmostEqual(value, 1.337044, delta=0.000001)
+        self.assertAlmostEqual(value, 0.610026, delta=0.000001)
         value = self.track.advance(0.4)
-        self.assertAlmostEqual(value, 1.282435, delta=0.000001)
+        self.assertAlmostEqual(value, 0.577903, delta=0.000001)
         value = self.track.advance(0.4)
-        self.assertAlmostEqual(value, 0.8554535, delta=0.000001)
+        self.assertAlmostEqual(value, 0.326737, delta=0.000001)
 
