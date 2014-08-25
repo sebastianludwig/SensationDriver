@@ -182,6 +182,7 @@ class TestTrack(unittest.TestCase):
         self.assertFalse(self.track.is_finished)
         self.track.advance(1.3001)
         self.assertTrue(self.track.is_finished)
+        self.assertIsNone(self.track.advance(0.01))
 
     def test_returns_last_value(self):
         value = 0

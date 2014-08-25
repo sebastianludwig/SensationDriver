@@ -21,7 +21,7 @@ class Track(object):
 
     def advance(self, seconds):
         if self._finished:
-            None
+            return None
 
         try:
             self.value = self.timeline.send(seconds)
