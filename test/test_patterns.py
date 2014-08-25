@@ -226,6 +226,7 @@ class TestTrack(unittest.TestCase):
         value = 0
         while not self.track.is_finished:
             value = self.track.advance(0.3)
+        self.assertAlmostEqual(value, 1)
 
     def test_returns_last_value_immediatly(self):
         value = self.track.advance(4)
