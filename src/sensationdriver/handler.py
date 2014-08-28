@@ -15,64 +15,114 @@ else:
     from .dummy import pca9685
     from .dummy import wirebus
 
+def parse_actor_config(config, logger=None):
+    # { 
+    #     "drivers": [<Driver>],
+    #     "regions": {
+    #         "LEFT_HAND": [<Actor>]
+    #     }
+    # }
+
+    def driver_for_address(drivers, address):
+        if type(address) is str:
+                address = int(address, 16) if address.startswith('0x') else int(address)
+
+        if address not in drivers:
+            if not wirebus.I2C.isDeviceAnswering(address):
+                return None
+
+            driver = pca9685.Driver(address, debug=__debug__, logger=logger)
+            drivers[address] = driver
+        return drivers[address]
+
+    vibration_config = config['vibration']
+    global_actor_mapping_curve_degree = vibration_config.get('actor_mapping_curve_degree', None)
+    global_actor_min_intensity = vibration_config.get('actor_min_intensity', None)
+    global_actor_min_intensity_warmup = vibration_config.get('actor_min_intensity_warmup', None)
+    global_actor_min_instant_intensity = vibration_config.get('actor_min_instant_intensity', None)
+
+    drivers = {}    # driver_address -> driver
+    regions = {}     # region_name -> actor_index -> actor
+    for region_config in vibration_config['regions']:
+        driver = driver_for_address(drivers, region_config['driver_address'])
+
+        if driver is None:
+            logger.error("No driver found for at address 0x%02X for region %s - ignoring region", region_config['driver_address'], region_config['name'])
+            continue
+
+        if region_config['name'] not in regions:
+            regions[region_config['name']] = {}
+
+        region_actor_mapping_curve_degree = region_config.get('actor_mapping_curve_degree', global_actor_mapping_curve_degree)
+        region_actor_min_intensity = region_config.get('actor_min_intensity', global_actor_min_intensity)
+        region_actor_min_intensity_warmup = region_config.get('actor_min_intensity_warmup', global_actor_min_intensity_warmup)
+        region_actor_min_instant_intensity = region_config.get('actor_min_instant_intensity', global_actor_min_instant_intensity)
+
+        region_actors = regions[region_config['name']]
+        for actor_config in region_config['actors']:
+            if actor_config['index'] in region_actors:
+                logger.error("Multiple actors configured with index %d in region %s - ignoring subsequent definitions", actor_config['index'], region_config['name'])
+                continue
+            else:
+                vibration_motor = VibrationMotor(driver=driver, outlet=actor_config['outlet'], index_in_region=actor_config['index'], position=actor_config['position'], logger=logger)
+
+                mapping_curve_degree = actor_config.get('mapping_curve_degree', region_actor_mapping_curve_degree)
+                min_intensity = actor_config.get('min_intensity', region_actor_min_intensity)
+                min_intensity_warmup = actor_config.get('min_intensity_warmup', region_actor_min_intensity_warmup)                
+                min_instant_intensity = actor_config.get('min_instant_intensity', region_actor_min_instant_intensity)
+                if mapping_curve_degree is not None:
+                    vibration_motor.mapping_curve_degree = mapping_curve_degree
+                if min_intensity is not None:
+                    vibration_motor.min_intensity = min_intensity
+                if min_intensity_warmup is not None:
+                    vibration_motor.min_intensity_warmup = min_intensity_warmup
+                if min_instant_intensity is not None:
+                    vibration_motor.min_instant_intensity = min_instant_intensity
+
+                region_actors[actor_config['index']] = vibration_motor
+
+    for region_name in regions:
+        regions[region_name] = list(regions[region_name].values())
+    return { "drivers": list(drivers.values()), "regions": regions }
+
 
 class Vibration(pipeline.Element):
     def __init__(self, config_path, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)
         pca9685.Driver.softwareReset()
 
-        self.drivers = {}
-        self.actors = {}
 
-        self._init_actors(config_path)
-
-    def _init_actors(self, config_path):
         with open(config_path) as f:
-            config = yaml.load(f)
+            config = parse_actor_config(yaml.load(f), logger=logger)
 
-        for region in config['vibration']['regions']:
-            driver_address = region['driver_address']
-            if type(driver_address) is str:
-                driver_address = int(driver_address, 16) if driver_address.startswith('0x') else int(driver_address)
+        self.drivers = config['drivers']
+        for driver in self.drivers:
+            # TODO use ALLCALL address to set PWM frequency
+            driver.setPWMFreq(1700)                        # Set max frequency to (~1,6kHz) # TODO test different frequencies
 
-            if driver_address not in self.drivers:
-                if not wirebus.I2C.isDeviceAnswering(driver_address):
-                    self.logger.error("No driver found for at address 0x%02X for region %s - ignoring region", region['driver_address'], region['name'])
-                    continue
 
-                driver = pca9685.Driver(driver_address, debug=__debug__, logger=self.logger)
-                # TODO use ALLCALL address to set PWM frequency
-                driver.setPWMFreq(1700)                        # Set max frequency to (~1,6kHz) # TODO test different frequencies
-                self.drivers[driver_address] = driver
-            driver = self.drivers[driver_address]
-
+        self.actors = {}
+        for region_name, actors in config['regions'].items():
             try:
-                region_index = sensationprotocol.Vibration.Region.Value(region['name'])
+                region_index = sensationprotocol.Vibration.Region.Value(region_name)
+
+                region_actors = {}
+                for actor in actors:
+                    region_actors[actor.index_in_region] = actor
+                
+                self.actors[region_index] = region_actors
             except ValueError:
-                self.logger.error("Region with unknown name '%s' configured - ignoring region", region['name'])
+                self.logger.error("Region with unknown name '%s' configured - ignoring region", region_name)
                 continue
 
-            if region_index not in self.actors:
-                self.actors[region_index] = {}
-
-            region_actors = self.actors[region_index]
-
-            for actor in region['actors']:
-                if actor['index'] in region_actors:
-                    self.logger.error("Multiple actors configured with index %d in region %s - ignoring subsequent definitions", actor['index'], region['name'])
-                    continue
-                else:
-                    vibration_motor = VibrationMotor(driver=driver, outlet=actor['outlet'], position=actor['position'], logger=self.logger)
-                    region_actors[actor['index']] = vibration_motor
-
     def _set_up(self):
-        for driver in self.drivers.values():
+        for driver in self.drivers:
             driver.setAllPWM(0, 0)
         # TODO reset all actors
 
     def _tear_down(self):
         if not __debug__:
-            for driver in self.drivers.values():
+            for driver in self.drivers:
                 driver.setAllPWM(0, 0)
 
     @asyncio.coroutine

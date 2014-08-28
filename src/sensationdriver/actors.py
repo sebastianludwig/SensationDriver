@@ -35,9 +35,10 @@ class PrioritizedIntensity(object):
 class VibrationMotor(object):
     _SENSITIVITY = 0.005                    # ignore any changes below the this value and treat values below as "motor off"
 
-    def __init__(self, driver, outlet, position=None, logger=None):
+    def __init__(self, driver, outlet, index_in_region, position=None, logger=None):
         self.driver = driver
         self.outlet = outlet
+        self.index_in_region = index_in_region
         self.position = position
         self.logger = logger if logger is not None else logging.getLogger('root')
 

@@ -77,7 +77,7 @@ class TestVibrationMotor(AsyncTestCase):
         super().setUp()
 
         self.driver = TestVibrationMotor.MockDriver()
-        self.motor = VibrationMotor(self.driver, 0)
+        self.motor = VibrationMotor(self.driver, 0, 0)
         self.motor.mapping_curve_degree = 1.5
         self.motor.motor_min_intensity = 0.3
         self.motor.motor_min_instant_intensity = 0.5
