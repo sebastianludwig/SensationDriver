@@ -1,6 +1,12 @@
+- Test and commit latest changes
+- Implement TODOs
 - name actors + full conf
-- use default settings for min_intensity and so on and allow override in actor_conf
+  - http://en.wikipedia.org/wiki/Anatomical_terms_of_location
+  - http://de.wikipedia.org/wiki/Anatomische_Lage-_und_Richtungsbezeichnungen
 Dome thingie with paintball guns
+Tesla suit
+  - http://teslasuit.com
+  - https://teslasuit.wordpress.com
 Eisenkern Conrad 534439
 Improvements
   - get ALLCALLADDR working (derzeit nicht zuverlässig - vllt mit anderer smbus-Implementierung?)

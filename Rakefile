@@ -2,6 +2,7 @@
 
 require 'time'
 require 'rb-fsevent'
+require 'colorize'
 
 PI_HOSTNAME = "sensationdriver.local"
 PI_USER = 'pi'
@@ -77,7 +78,13 @@ task :test, :pattern do |t, args|
     Dir.chdir(sibling_path('test')) do
         pattern = args.pattern ? "*#{args.pattern}*.py" : '*.py'
         files = Dir.glob(pattern).map { |f| File.basename(f) }
-        puts `#{PYTHON} -m unittest -v #{files.join(' ')}`
+        output = `#{PYTHON} -m unittest -v #{files.join(' ')} 2>&1`.split "\n"
+        output.each do |line|
+            line = line.red if line.end_with?('ERROR', 'FAIL') or line.start_with?('ERROR', 'FAIL')
+            line = line.green if line.end_with? 'ok', 'OK'
+            puts line
+        end
+        puts
     end
 end
 
@@ -85,8 +92,13 @@ namespace :test do
     task :watch, [:pattern] => :test do |t, args|
         fsevent = FSEvent.new
         options = {:latency => 5, :no_defer => true }
+        counter = 1
         fsevent.watch sibling_path('test'), options do |directories|
-            `rake -f #{__FILE__} test[#{args.pattern}]`
+            puts "Testrun: #{counter}"
+            counter += 1
+            puts("#" * 70)
+            puts `rake -f #{__FILE__} test[#{args.pattern}]`
+            puts("#" * 70)
         end
         fsevent.run
     end
