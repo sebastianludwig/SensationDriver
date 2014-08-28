@@ -1,5 +1,3 @@
-- Test and commit latest changes
-- Implement TODOs
 - name actors + full conf
   - http://en.wikipedia.org/wiki/Anatomical_terms_of_location
   - http://de.wikipedia.org/wiki/Anatomische_Lage-_und_Richtungsbezeichnungen

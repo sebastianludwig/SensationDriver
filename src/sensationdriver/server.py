@@ -53,7 +53,7 @@ class Server(object):
             del self._clients[task]
 
         # schedule a new Task to handle this specific client connection
-        # TODO use self._loop.create_task once Python 3.4.2 is available on OS X via brew
+        # TODO use self._loop.create_task once Python 3.4.2 is released
         task = asyncio.Task(self._handle_client(client_reader, client_writer), loop=self._loop)
         task.add_done_callback(client_disconnected)
 

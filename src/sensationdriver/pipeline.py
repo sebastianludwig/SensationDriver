@@ -128,7 +128,7 @@ class Parallelizer(Element):
 
         for successor in self._successors():
             # start async task to process message
-            # TODO use self._loop.create_task once Python 3.4.2 is available on OS X via brew
+            # TODO use self._loop.create_task once Python 3.4.2 is released
             worker = asyncio.Task(successor.process(data), loop=self._loop)
             worker.add_done_callback(worker_finished)
             self._workers.add(worker)
