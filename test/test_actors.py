@@ -70,7 +70,7 @@ class TestVibrationMotor(AsyncTestCase):
             current_time = time.time()
             if not self.start_time:
                 self.start_time = current_time
-            self.intensity = intensity / 4095
+            self.intensity = intensity
             self.calls.append(((current_time - self.start_time), self.intensity))
 
     def setUp(self):

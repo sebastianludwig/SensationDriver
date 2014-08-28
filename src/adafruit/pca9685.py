@@ -87,8 +87,14 @@ class Driver(object):
         time.sleep(0.005)                                         # wait for oscillator
         self.i2c.write8(self.__MODE1, oldmode | self.__RESTART)
 
+    def _scale_value(self, value):
+        if value < 0 or value > 1: raise ValueError('PWM value not in interval [0, 1]: %s' % value)
+        return int(value * 4095)
+
     def setPWM(self, channel, on, off):
         "Sets a single PWM channel"
+        on = self._scale_value(on)
+        off = self._scale_value(off)
         self.i2c.write8(self.__LED0_ON_L+4*channel, on & 0xFF)
         self.i2c.write8(self.__LED0_ON_H+4*channel, on >> 8)
         self.i2c.write8(self.__LED0_OFF_L+4*channel, off & 0xFF)
@@ -96,6 +102,8 @@ class Driver(object):
 
     def setAllPWM(self, on, off):
         "Sets a all PWM channels"
+        on = self._scale_value(on)
+        off = self._scale_value(off)
         self.i2c.write8(self.__ALL_LED_ON_L, on & 0xFF)
         self.i2c.write8(self.__ALL_LED_ON_H, on >> 8)
         self.i2c.write8(self.__ALL_LED_OFF_L, off & 0xFF)

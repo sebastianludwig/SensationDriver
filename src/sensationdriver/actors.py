@@ -80,8 +80,8 @@ class VibrationMotor(object):
             return
         self.logger.debug("setting %s to %.3f", self.position, value)
         self.__current_intensity = value
-        # TODO move the 4095 into the driver - it's a detail which doesn't belong here
-        self.driver.setPWM(self.outlet, 0, int(self.__current_intensity * 4095))
+        
+        self.driver.setPWM(self.outlet, 0, self.__current_intensity)
         if value < self._SENSITIVITY:
             self._running_since = None
         elif self._running_since is None:
