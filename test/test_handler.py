@@ -11,6 +11,7 @@ class TestActorConfigParsing(unittest.TestCase):
                             "regions": [
                                 {
                                     "name": "LEFT_HAND",
+                                    "i2c_bus_number": 1,
                                     "driver_address": "0x40",
                                     "actors": [
                                         {
@@ -27,6 +28,7 @@ class TestActorConfigParsing(unittest.TestCase):
                                 },
                                 {
                                     "name": "RIGHT_HAND",
+                                    "i2c_bus_number": 1,
                                     "driver_address": "0x41",
                                     "actors": [
                                         {
@@ -59,6 +61,7 @@ class TestActorConfigParsing(unittest.TestCase):
                             "regions": [
                                 {
                                     "name": "LEFT_HAND",
+                                    "i2c_bus_number": 1,
                                     "driver_address": "0x40",
                                     "actors": [
                                         {
@@ -70,6 +73,7 @@ class TestActorConfigParsing(unittest.TestCase):
                                 },
                                 {
                                     "name": "LEFT_FOREARM",
+                                    "i2c_bus_number": 1,
                                     "driver_address": "0x40",
                                     "actors": [
                                         {
@@ -96,6 +100,7 @@ class TestActorConfigParsing(unittest.TestCase):
                             "regions": [
                                 {
                                     "name": "LEFT_HAND",
+                                    "i2c_bus_number": 1,
                                     "driver_address": "0x40",
                                     "actors": [
                                         {
@@ -107,6 +112,7 @@ class TestActorConfigParsing(unittest.TestCase):
                                 },
                                 {
                                     "name": "LEFT_HAND",
+                                    "i2c_bus_number": 1,
                                     "driver_address": "0x41",
                                     "actors": [
                                         {
@@ -138,6 +144,7 @@ class TestActorConfigParsing(unittest.TestCase):
                             "regions": [
                                 {
                                     "name": "LEFT_HAND",
+                                    "i2c_bus_number": 1,
                                     "driver_address": "0x40",
                                     "actors": [
                                         {
@@ -171,6 +178,7 @@ class TestActorConfigParsing(unittest.TestCase):
                             "regions": [
                                 {
                                     "name": "LEFT_HAND",
+                                    "i2c_bus_number": 1,
                                     "driver_address": "0x40",
                                     
                                     "actor_mapping_curve_degree": 52,
@@ -210,6 +218,7 @@ class TestActorConfigParsing(unittest.TestCase):
                             "regions": [
                                 {
                                     "name": "LEFT_HAND",
+                                    "i2c_bus_number": 1,
                                     "driver_address": "0x40",
                                     
                                     "actor_mapping_curve_degree": 52,
