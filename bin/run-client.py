@@ -127,17 +127,18 @@ else:                       # interactive mode
                 elif line == "test_manual" or line == "tm":
                     print("Press <Enter> to go to next actor, type `stop` to stop.")
                     start = True
+                    test_actor = actor
                     for command in sys.stdin:
                         command = command.lower().strip().replace(" ", "")
                         if command == "stop":
                             break
                         if start:
-                            send(client, region, actor, priority, 0.8)
+                            send(client, region, test_actor, priority, 0.8)
                         else:
-                            send(client, region, actor, priority, 0)
-                            actor = (actor + 1) % 16
+                            send(client, region, test_actor, priority, 0)
+                            test_actor = test_actor + 1
                         start = not start
-                    send(client, region, actor, priority, 0)
+                    send(client, region, test_actor, priority, 0)
                     print("Manual test stopped.")
                 else:
                     print("Unknown command:", line)
