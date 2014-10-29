@@ -17,6 +17,12 @@ from sensationdriver import pipeline
 from sensationdriver import messages
 from sensationdriver import handler
 from sensationdriver import protocol
+from sensationdriver import platform
+
+if platform.is_raspberry():
+    from adafruit import wirebus
+else:
+    from .dummy import wirebus
 
 
 def file_logger(filename):    # used in logging_conf.yaml
@@ -35,6 +41,8 @@ sys.excepthook = excepthook
 
 
 def main():
+    wirebus.I2C.initialize(logger)
+    
     loop = asyncio.get_event_loop()
     loop.set_debug(True)
 
@@ -52,6 +60,7 @@ def main():
     server.handler = messages.Parser() >> parallelizer >> messages.Logger() >> [messages.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config_path, logger=logger),
                                                                                 messages.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
                                                                                 messages.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
+
     for element in server.handler:
         element.logger = logger
 

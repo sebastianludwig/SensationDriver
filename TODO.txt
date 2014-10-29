@@ -1,9 +1,3 @@
-- zweiter I2C-Bus für kürzere Kabelwege
-  - Code umbauen
-  - http://elinux.org/RPi_Low-level_peripherals
-  - `sudo i2cdetect -y 0`
-  - http://www.raspberrypi.org/forums/viewtopic.php?f=44&t=33092&p=618507#p618507
-- Fix autostart :-(  
 - Sequneznummer vor/bei Parallelisierung vergeben
 - Review
     def func3:
@@ -145,7 +139,6 @@ py: made parallel processing a pipeline element (961dec5)
 py: pattern loading (7c73b2a) and playback (2a298e9)
 
 
-π:: install bcm2885: DL from http://www.airspayce.com/mikem/bcm2835/, `./configure, make, cd src, gcc -shared bcm2835.o -o libbcm2835.so
 
 
 Glossar

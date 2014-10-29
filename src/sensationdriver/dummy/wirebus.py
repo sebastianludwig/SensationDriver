@@ -4,9 +4,13 @@ class I2C(object):
         return 0
 
     @classmethod
-    def getPiI2CBusNumber(cls):
-        # Gets the I2C bus number /dev/i2c#
-        return 1 if cls.getPiRevision() > 1 else 0
+    def initialize(cls, logger=None):
+        pass
+
+    @classmethod
+    def getPiDefaultI2CBusNumber(cls):
+        "Returns the default I2C bus number /dev/i2c#"
+        return 0 if cls.getPiRevision() == 1 else 1
 
     @classmethod
     def isDeviceAnswering(cls, address):

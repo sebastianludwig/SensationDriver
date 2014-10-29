@@ -39,9 +39,9 @@ class Driver(object):
         "Sends a software reset (SWRST) command to all the servo drivers on the bus"
         cls.general_call_i2c.writeRaw8(0x06)        # SWRST
 
-    def __init__(self, address=0x40, debug=False, logger=None):
+    def __init__(self, address=0x40, busnum=-1, debug=False, logger=None):
         self.logger = logger if logger is not None else logging.getLogger('root')
-        self.i2c = I2C(address, logger=self.logger)
+        self.i2c = I2C(address, busnum=busnum, logger=self.logger)
         self.i2c.debug = debug
         self.address = address
         self.debug = debug

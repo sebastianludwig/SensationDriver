@@ -3,6 +3,7 @@
         "regions": [
             {
                 "name": "LEFT_ARM",
+                "i2c_bus_number": 1,
                 "driver_address": "0x41",
                 "actors": [
                     {
@@ -79,6 +80,7 @@
             },
             {
                 "name": "RIGHT_ARM",
+                "i2c_bus_number": 1,
                 "driver_address": "0x42",
                 "actors": [
                     {
@@ -155,6 +157,7 @@
             },
             {
                 "name": "LEFT_UPPER_BODY",
+                "i2c_bus_number": 1,
                 "driver_address": "0x40",
                 "actors": [
                     {
@@ -241,6 +244,7 @@
             },
             {
                 "name": "RIGHT_UPPER_BODY",
+                "i2c_bus_number": 1,
                 "driver_address": "0x43",
                 "actors": [
                     {
@@ -307,6 +311,7 @@
             },
             {
                 "name": "RIGHT_LEG",
+                "i2c_bus_number": 0,
                 "driver_address": "0x44",
                 "actors": [
                     {
@@ -393,6 +398,7 @@
             },
             {
                 "name": "LEFT_LEG",
+                "i2c_bus_number": 0,
                 "driver_address": "0x45",
                 "actors": [
                     {

@@ -23,12 +23,12 @@ def parse_actor_config(config, logger=None):
     #     }
     # }
 
-    def driver_for_address(drivers, address):
+    def driver_for_address(drivers, address, i2c_bus_number):
         if address not in drivers:
-            if not wirebus.I2C.isDeviceAnswering(address):
+            if not wirebus.I2C.isDeviceAnswering(address, i2c_bus_number):
                 return None
 
-            driver = pca9685.Driver(address, debug=__debug__, logger=logger)
+            driver = pca9685.Driver(address, i2c_bus_number, debug=__debug__, logger=logger)
             drivers[address] = driver
         return drivers[address]
 
@@ -39,16 +39,16 @@ def parse_actor_config(config, logger=None):
     global_actor_min_instant_intensity = vibration_config.get('actor_min_instant_intensity', None)
 
     drivers = {}    # driver_address -> driver
-    regions = {}     # region_name -> actor_index -> actor
+    regions = {}    # region_name -> actor_index -> actor
     for region_config in vibration_config['regions']:
         dirver_address = region_config['driver_address']
         if type(dirver_address) is str:
             dirver_address = int(dirver_address, 16) if dirver_address.startswith('0x') else int(dirver_address)
             
-        driver = driver_for_address(drivers, dirver_address)
+        driver = driver_for_address(drivers, dirver_address, region_config['i2c_bus_number'])
 
         if driver is None:
-            logger.error("No driver found for at address 0x%02X for region %s - ignoring region", dirver_address, region_config['name'])
+            logger.error("No driver found for at address 0x%02X on I2C bus %d for region %s - ignoring region", dirver_address, region_config['i2c_bus_number'], region_config['name'])
             continue
 
         if region_config['name'] not in regions:
