@@ -2,6 +2,154 @@
     "vibration": {
         "regions": [
             {
+                "name": "CHEST",
+                "i2c_bus_number": 1,
+                "driver_address": "0x40",
+                "actors": [
+                    {
+                        "position": "upper left center",
+                        "index": 2,
+                        "outlet": 3
+                    },
+                    {
+                        "position": "upper far left",
+                        "index": 3,
+                        "outlet": 1
+                    },
+                    {
+                        "position": "middle left center",
+                        "index": 6,
+                        "outlet": 11
+                    },
+                    {
+                        "position": "middle far left",
+                        "index": 7,
+                        "outlet": 9
+                    },
+                    {
+                        "position": "lower left center",
+                        "index": 10,
+                        "outlet": 12
+                    },
+                    {
+                        "position": "lower far left",
+                        "index": 11,
+                        "outlet": 14
+                    }
+                ]
+            },
+            {
+                "name": "CHEST",
+                "i2c_bus_number": 1,
+                "driver_address": "0x43",
+                "actors": [
+                    {
+                        "position": "upper far right",
+                        "index": 0,
+                        "outlet": 9
+                    },
+                    {
+                        "position": "upper right center",
+                        "index": 1,
+                        "outlet": 11
+                    },
+                    {
+                        "position": "middle far right",
+                        "index": 4,
+                        "outlet": 1
+                    },
+                    {
+                        "position": "middle right center",
+                        "index": 5,
+                        "outlet": 3
+                    },
+                    {
+                        "position": "lower far right",
+                        "index": 8,
+                        "outlet": 6
+                    },
+                    {
+                        "position": "lower right center",
+                        "index": 9,
+                        "outlet": 4
+                    }
+                ]
+            },
+            {
+                "name": "BACK",
+                "i2c_bus_number": 1,
+                "driver_address": "0x40",
+                "actors": [
+                    {
+                        "position": "upper far left",
+                        "index": 0,
+                        "outlet": 5
+                    },
+                    {
+                        "position": "upper left center",
+                        "index": 1,
+                        "outlet": 7
+                    },
+                    {
+                        "position": "middle far left",
+                        "index": 4,
+                        "outlet": 13
+                    },
+                    {
+                        "position": "middle left center",
+                        "index": 5,
+                        "outlet": 15
+                    },
+                    {
+                        "position": "lower far left",
+                        "index": 8,
+                        "outlet": 10
+                    },
+                    {
+                        "position": "lower left center",
+                        "index": 9,
+                        "outlet": 8
+                    }
+                ]
+            },
+            {
+                "name": "BACK",
+                "i2c_bus_number": 1,
+                "driver_address": "0x43",
+                "actors": [
+                    {
+                        "position": "upper right center",
+                        "index": 2,
+                        "outlet": 15
+                    },
+                    {
+                        "position": "upper far right",
+                        "index": 3,
+                        "outlet": 13
+                    },
+                    {
+                        "position": "middle right center",
+                        "index": 6,
+                        "outlet": 7
+                    },
+                    {
+                        "position": "middle far right",
+                        "index": 7,
+                        "outlet": 5
+                    },
+                    {
+                        "position": "lower right center",
+                        "index": 10,
+                        "outlet": 0
+                    },
+                    {
+                        "position": "lower far right",
+                        "index": 11,
+                        "outlet": 2
+                    }
+                ]
+            },
+            {
                 "name": "LEFT_ARM",
                 "i2c_bus_number": 1,
                 "driver_address": "0x41",
@@ -166,154 +314,6 @@
                         "position": "back of hand",
                         "index": 6,
                         "outlet": 11
-                    }
-                ]
-            },
-            {
-                "name": "CHEST",
-                "i2c_bus_number": 1,
-                "driver_address": "0x40",
-                "actors": [
-                    {
-                        "position": "upper left center",
-                        "index": 2,
-                        "outlet": 3
-                    },
-                    {
-                        "position": "upper far left",
-                        "index": 3,
-                        "outlet": 1
-                    },
-                    {
-                        "position": "middle left center",
-                        "index": 6,
-                        "outlet": 11
-                    },
-                    {
-                        "position": "middle far left",
-                        "index": 7,
-                        "outlet": 9
-                    },
-                    {
-                        "position": "lower left center",
-                        "index": 10,
-                        "outlet": 12
-                    },
-                    {
-                        "position": "lower far left",
-                        "index": 11,
-                        "outlet": 14
-                    }
-                ]
-            },
-            {
-                "name": "CHEST",
-                "i2c_bus_number": 1,
-                "driver_address": "0x43",
-                "actors": [
-                    {
-                        "position": "upper far right",
-                        "index": 0,
-                        "outlet": 9
-                    },
-                    {
-                        "position": "upper right center",
-                        "index": 1,
-                        "outlet": 11
-                    },
-                    {
-                        "position": "middle far right",
-                        "index": 4,
-                        "outlet": 1
-                    },
-                    {
-                        "position": "middle right center",
-                        "index": 5,
-                        "outlet": 3
-                    },
-                    {
-                        "position": "lower far right",
-                        "index": 8,
-                        "outlet": 6
-                    },
-                    {
-                        "position": "lower right center",
-                        "index": 9,
-                        "outlet": 4
-                    }
-                ]
-            },
-            {
-                "name": "BACK",
-                "i2c_bus_number": 1,
-                "driver_address": "0x40",
-                "actors": [
-                    {
-                        "position": "upper far left",
-                        "index": 0,
-                        "outlet": 5
-                    },
-                    {
-                        "position": "upper left center",
-                        "index": 1,
-                        "outlet": 7
-                    },
-                    {
-                        "position": "middle far left",
-                        "index": 4,
-                        "outlet": 13
-                    },
-                    {
-                        "position": "middle left center",
-                        "index": 5,
-                        "outlet": 15
-                    },
-                    {
-                        "position": "lower far left",
-                        "index": 8,
-                        "outlet": 10
-                    },
-                    {
-                        "position": "lower left center",
-                        "index": 9,
-                        "outlet": 8
-                    }
-                ]
-            },
-            {
-                "name": "BACK",
-                "i2c_bus_number": 1,
-                "driver_address": "0x43",
-                "actors": [
-                    {
-                        "position": "upper right center",
-                        "index": 2,
-                        "outlet": 15
-                    },
-                    {
-                        "position": "upper far right",
-                        "index": 3,
-                        "outlet": 13
-                    },
-                    {
-                        "position": "middle right center",
-                        "index": 6,
-                        "outlet": 7
-                    },
-                    {
-                        "position": "middle far right",
-                        "index": 7,
-                        "outlet": 5
-                    },
-                    {
-                        "position": "lower right center",
-                        "index": 10,
-                        "outlet": 0
-                    },
-                    {
-                        "position": "lower far right",
-                        "index": 11,
-                        "outlet": 2
                     }
                 ]
             },
