@@ -50,8 +50,9 @@ task :server do
 end
 
 desc 'Starts an interactive client'
-task :client do
-    command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-client.py')} #{PI_HOSTNAME}'"
+task :client, :server do |t, args|
+    server = args.server ? args.server : PI_HOSTNAME
+    command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-client.py')} #{server}'"
     command = "sudo " + command if is_raspberry?
     exec(command)
 end
