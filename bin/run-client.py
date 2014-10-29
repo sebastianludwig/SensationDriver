@@ -83,6 +83,7 @@ else:                       # interactive mode
     print()
     print("test connector:  `test`                       short: `t`")
     print("test region:     `test_region`                short: `tr`")
+    print("test all:        `test_all`                   short: `ta`")
     print("manual test:     `test_manual`                short: `tm`")
     print()
     print("exit:            `exit`, Ctrl+D or Ctrl+C")
@@ -122,8 +123,20 @@ else:                       # interactive mode
                         index = actor//4*4 + i * 2
                         test(client, region, index, priority, 1)
                 elif line == "test_region" or line == "tr":
-                    for i in range(0, 16):
+                    for i in range(0, 18):
                         test(client, region, i, priority, 1)
+                elif line == "test_all" or line == "ta":
+                    actors_per_region = {   0: 12, 
+                                            1: 12, 
+                                            2: 7, 
+                                            3: 7,
+                                            4: 7,
+                                            5: 7,
+                                            6: 18,
+                                            7: 18}
+                    for region in range(0, 8):
+                        for index in range(0, actors_per_region[region]):
+                            test(client, region, index, priority, 1)
                 elif line == "test_manual" or line == "tm":
                     print("Press <Enter> to go to next actor, type `stop` to stop.")
                     start = True
