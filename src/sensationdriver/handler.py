@@ -128,13 +128,19 @@ class Vibration(pipeline.Element):
 
     @asyncio.coroutine
     def _process(self, vibration):
-        if vibration.target_region in self.actors and vibration.actor_index in self.actors[vibration.target_region]:
-            actor = self.actors[vibration.target_region][vibration.actor_index]
+        actor = self._actor(vibration.target_region, vibration.actor_index)
+        if actor:
             yield from actor.set_intensity(vibration.intensity, vibration.priority)
         else:
             self.logger.warning("No actor configured with index %d in region %s", vibration.actor_index, sensationprotocol.Vibration.Region.Name(vibration.target_region))
 
         return vibration
+
+    def _actor(self, region, index):
+        if region in self.actors and index in self.actors[region]:
+            return self.actors[region][index]
+        else:
+            return None
 
 class Patterns(object):
     def __init__(self, inlet, loop=None, logger=None):
