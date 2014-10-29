@@ -49,6 +49,13 @@ task :server do
     exec(command)
 end
 
+desc 'Starts an interactive client'
+task :client do
+    command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-client.py')} #{PI_HOSTNAME}'"
+    command = "sudo " + command if is_raspberry?
+    exec(command)
+end
+
 namespace :server do
     desc "Sets up the necessary init.d scripts"
     task :install do
