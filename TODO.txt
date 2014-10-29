@@ -1,15 +1,59 @@
-- name actors + full conf
-  - http://en.wikipedia.org/wiki/Anatomical_terms_of_location
-  - http://de.wikipedia.org/wiki/Anatomische_Lage-_und_Richtungsbezeichnungen
+- zweiter I2C-Bus für kürzere Kabelwege
+  - Code umbauen
+  - http://elinux.org/RPi_Low-level_peripherals
+  - `sudo i2cdetect -y 0`
+  - http://www.raspberrypi.org/forums/viewtopic.php?f=44&t=33092&p=618507#p618507
+- Fix autostart :-(  
+- Sequneznummer vor/bei Parallelisierung vergeben
+- Review
+    def func3:
+      do_smth()
+
+    class Step1:
+        def __call__:
+            pass
+
+    def func(v=lambda { time.time() }):
+        pass
+
+    pipeline = [step1, step2, step3, step4]
+
+    map(execute, pipeline) # check fold
+
+    def execute(step):
+        step.process()
+
+    check for loops
+    check func tools lib
+    priority queue als buffer
+        last write wins in PrioritizedIntensity - letzter Wert ist nicht der zeitlich letzte
+    more functions with parameters, less objects
+    yield from only_one_explicitly_named_thing()
+
+Tabs
+    - http://www.nature.com/news/artificial-arms-get-closer-to-the-real-thing-1.16111?WT.mc_id=TWT_NatureNews
+    - http://www.ti.com/lit/ds/symlink/uln2803a.pdf
+    - Touch is important for soclial bonding: http://www.newyorker.com/science/maria-konnikova/social-media-affect-math-dunbar-number-friendships
+  - https://www.youtube.com/watch?v=1b1ycwQIG7c#t=116
+  - http://www.theverge.com/a/virtual-reality/intro
+  - http://www.ifa.philips.com/news/digital-innovations/philips-bluetouch-and-pulserelief-app
+  - https://www.kickstarter.com/projects/1663270989/project-perception-neuron/posts?page=2
+  - https://www.kickstarter.com/projects/324375300/vest-a-sensory-substitution-neuroscience-project
 Dome thingie with paintball guns
 Tesla suit
   - http://teslasuit.com
   - https://teslasuit.wordpress.com
+  - http://www.vrnerds.de/neues-zum-tesla-suit/
+Telepresenz?
 Eisenkern Conrad 534439
 Improvements
   - get ALLCALLADDR working (derzeit nicht zuverlässig - vllt mit anderer smbus-Implementierung?)
 Boris
   - automatic platine layouting (http://smart-prototyping.com/PCB-Prototyping.html)
+PCB printing
+  - https://www.oshpark.com
+  - http://www.oshstencils.com
+  - http://www.ofbrooklyn.com/2014/09/6/building-pulse-bloom-biofeedback-burning-man-2014/
 Actor intensity: very strong at first, then dampen -> flight simulator (ask Udo)
 
 Speed optimizations
@@ -76,7 +120,7 @@ py: set all PWM to 0 on connect and disconnect (1619bbd)
 π: Compile python-smbus for Python3 (http://procrastinative.ninja/2014/07/21/smbus-for-python34-on-raspberry/)
 py: convert code to Python3: `2to3 -w .` (d068484)
 
-proto: DL Python3 2.5.1 (https://github.com/GreatFruitOmsk/protobuf-py3)
+proto: DL Python3-Protobuf 2.5.1 (https://github.com/GreatFruitOmsk/protobuf-py3)
 proto: install: brew install autoconf automake libtool, ./autogen.sh , ./configure, make, (sudo) make install
 py: make sure correct protobuf Python 3 library is installed (`(sudo) python3.4 -m pip uninstall python3-protobuf` & rake dependencies:install)
 
@@ -99,6 +143,9 @@ unity: Pattern editor (e33f5c7)
 py: parallel processing of messages (4c80b05)
 py: made parallel processing a pipeline element (961dec5)
 py: pattern loading (7c73b2a) and playback (2a298e9)
+
+
+π:: install bcm2885: DL from http://www.airspayce.com/mikem/bcm2835/, `./configure, make, cd src, gcc -shared bcm2835.o -o libbcm2835.so
 
 
 Glossar

@@ -2,9 +2,12 @@ package sensationdriver;
 
 message Vibration {
   enum Region {
-    LEFT_HAND = 0;
-    LEFT_FOREARM = 1;
-    LEFT_UPPER_ARM = 2;
+    LEFT_ARM = 0;
+    RIGHT_ARM = 1;
+    LEFT_UPPER_BODY = 2;
+    RIGHT_UPPER_BODY = 3;
+    LEFT_LEG = 4;
+    RIGHT_LEG = 5;   
   }
 
   required Region target_region = 1;
