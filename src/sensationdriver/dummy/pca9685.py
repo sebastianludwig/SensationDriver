@@ -3,7 +3,7 @@ class Driver(object):
     def softwareReset(cls):
         pass
 
-    def __init__(self, address=0x40, debug=False, logger=None):
+    def __init__(self, address=0x40, busnum=-1, debug=False, logger=None):
         pass
 
     def wakeUp(self):

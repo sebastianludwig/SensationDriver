@@ -22,7 +22,7 @@ from sensationdriver import platform
 if platform.is_raspberry():
     from adafruit import wirebus
 else:
-    from .dummy import wirebus
+    from sensationdriver.dummy import wirebus
 
 
 def file_logger(filename):    # used in logging_conf.yaml
@@ -42,7 +42,7 @@ sys.excepthook = excepthook
 
 def main():
     wirebus.I2C.initialize(logger)
-    
+
     loop = asyncio.get_event_loop()
     loop.set_debug(True)
 

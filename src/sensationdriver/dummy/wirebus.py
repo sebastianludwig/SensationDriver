@@ -13,7 +13,7 @@ class I2C(object):
         return 0 if cls.getPiRevision() == 1 else 1
 
     @classmethod
-    def isDeviceAnswering(cls, address):
+    def isDeviceAnswering(cls, address, busnum=-1):
         return True
 
     def __init__(self, address, busnum=-1, debug=False, logger=None):
