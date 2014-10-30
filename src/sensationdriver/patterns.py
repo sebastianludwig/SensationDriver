@@ -1,6 +1,6 @@
 import math
 
-from .protocol import sensationprotocol_pb2 as sensationprotocol
+from . import protocol
 
 # HINT this class may be specialized as VibrationTrack one day
 class Track(object):
@@ -37,14 +37,14 @@ class Track(object):
         return self.value
 
     def create_message(self):
-        vibration = sensationprotocol.Vibration()
+        vibration = protocol.Vibration()
         vibration.target_region = self.target_region
         vibration.actor_index = self.actor_index
         vibration.intensity = self.value
         vibration.priority = self.priority
 
-        message = sensationprotocol.Message()
-        message.type = sensationprotocol.Message.VIBRATION
+        message = protocol.Message()
+        message.type = protocol.Message.VIBRATION
         message.vibration.CopyFrom(vibration)
 
         return message

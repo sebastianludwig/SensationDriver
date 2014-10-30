@@ -3,11 +3,9 @@ import yaml
 import asyncio
 
 from . import pipeline
-from .protocol import sensationprotocol_pb2 as sensationprotocol
+from . import protocol
 from .actors import VibrationMotor
 from .patterns import Track
-
-
 
 
 class Vibration(pipeline.Element):
@@ -23,7 +21,7 @@ class Vibration(pipeline.Element):
         self.actors = {}
         for region_name, actors in actor_config['regions'].items():
             try:
-                region_index = sensationprotocol.Vibration.Region.Value(region_name)
+                region_index = protocol.Vibration.Region.Value(region_name)
 
                 region_actors = {}
                 for actor in actors:
@@ -50,7 +48,7 @@ class Vibration(pipeline.Element):
         if actor:
             yield from actor.set_intensity(vibration.intensity, vibration.priority)
         else:
-            self.logger.warning("No actor configured with index %d in region %s", vibration.actor_index, sensationprotocol.Vibration.Region.Name(vibration.target_region))
+            self.logger.warning("No actor configured with index %d in region %s", vibration.actor_index, protocol.Vibration.Region.Name(vibration.target_region))
 
         return vibration
 

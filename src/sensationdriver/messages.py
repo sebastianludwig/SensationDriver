@@ -2,14 +2,14 @@ import logging
 import asyncio
 
 from . import pipeline
-from .protocol import sensationprotocol_pb2 as sensationprotocol
+from . import protocol
 
 
 class Parser(pipeline.Element):
     @asyncio.coroutine
     def _process(self, data):
-        message = sensationprotocol.Message()
         message.ParseFromString(data)
+        message = protocol.Message()
 
         return message
 
