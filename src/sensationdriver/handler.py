@@ -90,8 +90,6 @@ def parse_actor_config(config, logger=None):
 class Vibration(pipeline.Element):
     def __init__(self, config_path, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)
-        pca9685.Driver.softwareReset()
-
 
         with open(config_path) as f:
             config = parse_actor_config(yaml.load(f), logger=logger)

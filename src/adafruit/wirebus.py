@@ -12,9 +12,19 @@ import smbus
 # ===========================================================================
 
 class I2C(object):
+    __BLOCK_SIZE = 4096
+    __BCM2708_PERI_BASE = 0x20000000 # Base address of peripheral registers
+    __GPIO_BASE = (__BCM2708_PERI_BASE + 0x00200000)  # Address of GPIO registers
+    __GPFSEL0 = 0x0000 # Function select 0
+    __GPFSEL2 = 0x0008 # Function select 2
+    __GPPUD = 0x0094 # GPIO Pin Pull-up/down Enable
+    __GPPUDCLK0 = 0x0098 # GPIO Pin Pull-up/down Enable Clock 0
+    __GPIO_PUD_OFF = 0b00   # Off - disable pull-up/down
+    __GPIO_PUD_UP = 0b10    # Enable Pull Up control
+
 
     @staticmethod
-    def getPiRevision():
+    def _piRevision():
         "Gets the version number of the Raspberry Pi board"
         # Courtesy quick2wire-python-api
         # https://github.com/quick2wire/quick2wire-python-api
@@ -27,26 +37,61 @@ class I2C(object):
             return 0
 
     @classmethod
-    def initialize(cls, logger=None):
-        BLOCK_SIZE = 4096
-        BCM2708_PERI_BASE = 0x20000000 # Base address of peripheral registers
-        GPIO_BASE = (BCM2708_PERI_BASE + 0x00200000)  # Address of GPIO registers
-        GPFSEL0 = 0x0000 # Function select 0
-        GPFSEL2 = 0x0008 # Function select 2
-        GPPUD = 0x0094 # GPIO Pin Pull-up/down Enable
-        GPPUDCLK0 = 0x0098 # GPIO Pin Pull-up/down Enable Clock 0
-        GPIO_PUD_OFF = 0b00   # Off - disable pull-up/down
-        GPIO_PUD_UP = 0b10    # Enable Pull Up control
+    def defaultBusNumber(cls):
+        "Returns the default I2C bus number /dev/i2c#"
+        return 0 if cls._piRevision() == 1 else 1
 
+    @classmethod
+    def pinoutConfiguredBuses(cls):
+        if cls._piRevision() == 1:
+            return [cls.defaultBusNumber()]     # this is not 100% correct - I guess you can change the pin configuration on a revision 1 board, too
+
+        mf = os.open("/dev/mem", os.O_RDWR | os.O_SYNC)
+        memory = mmap.mmap(mf, cls.__BLOCK_SIZE, mmap.MAP_SHARED, 
+                    mmap.PROT_READ | mmap.PROT_WRITE, offset=cls.__GPIO_BASE)
+        os.close(mf)
+
+        bus_numbers = []
+
+        # Read function select registers
+        # GPFSEL0 -- GPIO 0,1 I2C0   GPIO 2,3 I2C1
+        memory.seek(cls.__GPFSEL0)
+        reg0 = int.from_bytes(memory.read(4), byteorder='little')
+
+        # GPFSEL0 bits --> x[20] SCL1[3] SDA1[3] x[6]
+        #                        GPIO3   GPIO2
+        reg0_mask = 0b00000000000000000000111111000000 
+        reg0_conf = 0b00000000000000000000100100000000
+        if reg0 & reg0_mask == reg0_conf:
+            bus_numbers.append(1)
+
+
+        # GPFSEL2 -- GPIO 28,29 I2C0
+        memory.seek(cls.__GPFSEL2)
+        reg2 = int.from_bytes(memory.read(4), byteorder='little')
+
+        # GPFSEL2 bits --> x[2] SCL0[3] SDA0[3] x[24]
+        #                       GPIO29  GPIO28
+        reg2_mask = 0b00111111000000000000000000000000 
+        reg2_conf = 0b00100100000000000000000000000000
+        if reg2 & reg2_mask == reg2_conf:
+            bus_numbers.append(0)
+
+        memory.close()
+
+        return bus_numbers
+
+    @classmethod
+    def configurePinouts(cls, logger=None):
         logger = logger if logger is not None else logging.getLogger('root')
 
-        if cls.getPiRevision() < 2:
+        if cls._piRevision() < 2:
             raise RuntimeError("Rev 2 or greater Raspberry Pi required.")
 
         # Use /dev/mem to gain access to peripheral registers
-        mf = os.open("/dev/mem", os.O_RDWR|os.O_SYNC)
-        memory = mmap.mmap(mf, BLOCK_SIZE, mmap.MAP_SHARED, 
-                    mmap.PROT_READ|mmap.PROT_WRITE, offset=GPIO_BASE)
+        mf = os.open("/dev/mem", os.O_RDWR | os.O_SYNC)
+        memory = mmap.mmap(mf, cls.__BLOCK_SIZE, mmap.MAP_SHARED, 
+                    mmap.PROT_READ | mmap.PROT_WRITE, offset=cls.__GPIO_BASE)
         # can close the file after we have mmap
         os.close(mf)
 
@@ -56,7 +101,7 @@ class I2C(object):
 
         # Read function select registers
         # GPFSEL0 -- GPIO 0,1 I2C0   GPIO 2,3 I2C1
-        memory.seek(GPFSEL0)
+        memory.seek(cls.__GPFSEL0)
         reg0 = int.from_bytes(memory.read(4), byteorder='little')
 
         # GPFSEL0 bits --> x[20] SCL1[3] SDA1[3] 
@@ -64,14 +109,14 @@ class I2C(object):
         reg0_mask = 0b00000000000000000000111111111111 
         reg0_conf = 0b00000000000000000000100100000000
         if reg0 & reg0_mask != reg0_conf:
-            logger.info("register 0 configuration of I2C1 not correct. Updating.")
+            logger.info("register 0 configuration of I2C0 not correct. Updating.")
             reg0 = (reg0 & ~reg0_mask) | reg0_conf
-            memory.seek(GPFSEL0)
+            memory.seek(cls.__GPFSEL0)
             memory.write(reg0.to_bytes(4, byteorder='little'))
 
 
         # GPFSEL2 -- GPIO 28,29 I2C0
-        memory.seek(GPFSEL2)
+        memory.seek(cls.__GPFSEL2)
         reg2 = int.from_bytes(memory.read(4), byteorder='little')
 
         # GPFSEL2 bits --> x[2] SCL0[3] SDA0[3] x[24]
@@ -81,42 +126,36 @@ class I2C(object):
         if reg2 & reg2_mask != reg2_conf:
             logger.info("register 2 configuration of I2C0 not correct. Updating.")
             reg2 = (reg2 & ~reg2_mask) | reg2_conf
-            memory.seek(GPFSEL2)
+            memory.seek(cls.__GPFSEL2)
             memory.write(reg2.to_bytes(4, byteorder="little"))
 
         # Configure pull up resistors for GPIO28 and GPIO29
-        def configure_pull_up(pin):
-            memory.seek(GPPUD)
-            memory.write(GPIO_PUD_UP.to_bytes(4, byteorder="little"))
+        def configure_internal_pull_up_resistor(pin):
+            memory.seek(cls.__GPPUD)
+            memory.write(cls.__GPIO_PUD_UP.to_bytes(4, byteorder="little"))
             time.sleep(10e-6)
 
-            memory.seek(GPPUDCLK0)
+            memory.seek(cls.__GPPUDCLK0)
             memory.write((1 << pin).to_bytes(4, byteorder="little"))
             time.sleep(10e-6)
 
-            memory.seek(GPPUD)
-            memory.write(GPIO_PUD_OFF.to_bytes(4, byteorder="little"))
+            memory.seek(cls.__GPPUD)
+            memory.write(cls.__GPIO_PUD_OFF.to_bytes(4, byteorder="little"))
 
-            memory.seek(GPPUDCLK0)
+            memory.seek(cls.__GPPUDCLK0)
             memory.write((0 << pin).to_bytes(4, byteorder="little"))
 
-        configure_pull_up(28)
-        configure_pull_up(29)
+        configure_internal_pull_up_resistor(28)
+        configure_internal_pull_up_resistor(29)
 
         # No longer need the mmap
         memory.close()
-
-
-    @classmethod
-    def getPiDefaultI2CBusNumber(cls):
-        "Returns the default I2C bus number /dev/i2c#"
-        return 0 if cls.getPiRevision() == 1 else 1
 
     @classmethod
     def isDeviceAnswering(cls, address, busnum=-1):
         "Checks if a device is answering on the given address"
         try:
-            bus = smbus.SMBus(busnum if busnum >= 0 else cls.getPiDefaultI2CBusNumber())
+            bus = smbus.SMBus(busnum if busnum >= 0 else cls.defaultBusNumber())
             bus.write_quick(address)
             return True
         except IOError as err:
@@ -129,7 +168,7 @@ class I2C(object):
         # Alternatively, you can hard-code the bus version below:
         # self.bus = smbus.SMBus(0); # Force I2C0 (early 256MB Pi's)
         # self.bus = smbus.SMBus(1); # Force I2C1 (512MB Pi's)
-        self.bus = smbus.SMBus(busnum if busnum >= 0 else I2C.getPiDefaultI2CBusNumber())
+        self.bus = smbus.SMBus(busnum if busnum >= 0 else I2C.defaultBusNumber())
         self.debug = debug
 
     def reverseByteOrder(self, data):

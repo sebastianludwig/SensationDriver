@@ -21,9 +21,11 @@ from sensationdriver import platform
 
 if platform.is_raspberry():
     from adafruit import wirebus
+    from adafruit import pca9685
 else:
     from sensationdriver.dummy import wirebus
-
+    from sensationdriver.dummy import pca9685
+    
 
 def file_logger(filename):    # used in logging_conf.yaml
     return logging.FileHandler(project.relative_path('log', filename))
@@ -41,7 +43,9 @@ sys.excepthook = excepthook
 
 
 def main():
-    wirebus.I2C.initialize(logger)
+    wirebus.I2C.configurePinouts(logger)
+    pca9685.Driver.softwareReset()
+
 
     loop = asyncio.get_event_loop()
     loop.set_debug(True)
