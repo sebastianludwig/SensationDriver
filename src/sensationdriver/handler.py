@@ -2,106 +2,26 @@ import logging
 import yaml
 import asyncio
 
-from . import platform
 from . import pipeline
 from .protocol import sensationprotocol_pb2 as sensationprotocol
 from .actors import VibrationMotor
 from .patterns import Track
 
-if platform.is_raspberry():
-    from adafruit import pca9685
-    from adafruit import wirebus
-else:
-    from .dummy import pca9685
-    from .dummy import wirebus
 
-def parse_actor_config(config, logger=None):
-    # { 
-    #     "drivers": [<Driver>],
-    #     "regions": {
-    #         "LEFT_HAND": [<Actor>]
-    #     }
-    # }
-
-    def driver_for_address(drivers, address, i2c_bus_number):
-        if address not in drivers:
-            if not wirebus.I2C.isDeviceAnswering(address, i2c_bus_number):
-                return None
-
-            driver = pca9685.Driver(address, i2c_bus_number, debug=__debug__, logger=logger)
-            drivers[address] = driver
-        return drivers[address]
-
-    vibration_config = config['vibration']
-    global_actor_mapping_curve_degree = vibration_config.get('actor_mapping_curve_degree', None)
-    global_actor_min_intensity = vibration_config.get('actor_min_intensity', None)
-    global_actor_min_intensity_warmup = vibration_config.get('actor_min_intensity_warmup', None)
-    global_actor_min_instant_intensity = vibration_config.get('actor_min_instant_intensity', None)
-
-    drivers = {}    # driver_address -> driver
-    regions = {}    # region_name -> actor_index -> actor
-    for region_config in vibration_config['regions']:
-        dirver_address = region_config['driver_address']
-        if type(dirver_address) is str:
-            dirver_address = int(dirver_address, 16) if dirver_address.startswith('0x') else int(dirver_address)
-            
-        driver = driver_for_address(drivers, dirver_address, region_config['i2c_bus_number'])
-
-        if driver is None:
-            logger.error("No driver found for at address 0x%02X on I2C bus %d for region %s - ignoring region", dirver_address, region_config['i2c_bus_number'], region_config['name'])
-            continue
-
-        if region_config['name'] not in regions:
-            regions[region_config['name']] = {}
-
-        region_actor_mapping_curve_degree = region_config.get('actor_mapping_curve_degree', global_actor_mapping_curve_degree)
-        region_actor_min_intensity = region_config.get('actor_min_intensity', global_actor_min_intensity)
-        region_actor_min_intensity_warmup = region_config.get('actor_min_intensity_warmup', global_actor_min_intensity_warmup)
-        region_actor_min_instant_intensity = region_config.get('actor_min_instant_intensity', global_actor_min_instant_intensity)
-
-        region_actors = regions[region_config['name']]
-        for actor_config in region_config['actors']:
-            if actor_config['index'] in region_actors:
-                logger.error("Multiple actors configured with index %d in region %s - ignoring subsequent definitions", actor_config['index'], region_config['name'])
-                continue
-            else:
-                vibration_motor = VibrationMotor(driver=driver, outlet=actor_config['outlet'], index_in_region=actor_config['index'], position=actor_config['position'], logger=logger)
-
-                mapping_curve_degree = actor_config.get('mapping_curve_degree', region_actor_mapping_curve_degree)
-                min_intensity = actor_config.get('min_intensity', region_actor_min_intensity)
-                min_intensity_warmup = actor_config.get('min_intensity_warmup', region_actor_min_intensity_warmup)                
-                min_instant_intensity = actor_config.get('min_instant_intensity', region_actor_min_instant_intensity)
-                if mapping_curve_degree is not None:
-                    vibration_motor.mapping_curve_degree = mapping_curve_degree
-                if min_intensity is not None:
-                    vibration_motor.min_intensity = min_intensity
-                if min_intensity_warmup is not None:
-                    vibration_motor.min_intensity_warmup = min_intensity_warmup
-                if min_instant_intensity is not None:
-                    vibration_motor.min_instant_intensity = min_instant_intensity
-
-                region_actors[actor_config['index']] = vibration_motor
-
-    for region_name in regions:
-        regions[region_name] = list(regions[region_name].values())
-    return { "drivers": list(drivers.values()), "regions": regions }
 
 
 class Vibration(pipeline.Element):
-    def __init__(self, config_path, downstream=None, logger=None):
+    def __init__(self, actor_config, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)
 
-        with open(config_path) as f:
-            config = parse_actor_config(yaml.load(f), logger=logger)
-
-        self.drivers = config['drivers']
+        self.drivers = actor_config['drivers']
         for driver in self.drivers:
             # TODO use ALLCALL address to set PWM frequency
             driver.setPWMFreq(1700)                        # Set max frequency to (~1,6kHz) # TODO test different frequencies
 
 
         self.actors = {}
-        for region_name, actors in config['regions'].items():
+        for region_name, actors in actor_config['regions'].items():
             try:
                 region_index = sensationprotocol.Vibration.Region.Value(region_name)
 
