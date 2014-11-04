@@ -1,7 +1,7 @@
 from utils import *
 
-from sensationdriver.patterns import BezierPath
-from sensationdriver.patterns import Track
+from sensationdriver.pattern import BezierPath
+from sensationdriver.pattern import Track
 
 
 class Point(object):

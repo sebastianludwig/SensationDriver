@@ -5,7 +5,7 @@ import asyncio
 from . import pipeline
 from . import protocol
 from .actors import VibrationMotor
-from .patterns import Track
+from .pattern import Track
 
 
 class Vibration(pipeline.Element):
@@ -83,7 +83,7 @@ class Vibration(pipeline.Element):
         self.processed_message_indices[region][actor_index][priority] = message_index
 
 
-class Patterns(object):
+class Pattern(object):
     def __init__(self, inlet, loop=None, logger=None):
         self.logger = logger if logger is not None else logging.getLogger('root')
         self._loop = loop if loop is not None else asyncio.get_event_loop()

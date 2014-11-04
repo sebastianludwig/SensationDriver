@@ -14,7 +14,7 @@ sys.path.append(project.relative_path('src'))
 
 import sensationdriver
 from sensationdriver import pipeline
-from sensationdriver import messages
+from sensationdriver import message
 from sensationdriver import handler
 from sensationdriver import actors
 from sensationdriver import protocol
@@ -61,11 +61,11 @@ def main():
     server = sensationdriver.Server(loop=loop, logger=logger)
 
     numerator = pipeline.Numerator()
-    patter_handler = handler.Patterns(inlet=numerator, logger=logger)
+    patter_handler = handler.Pattern(inlet=numerator, logger=logger)
 
-    server.handler = messages.Parser() >> numerator >> pipeline.Parallelizer(loop=loop) >> messages.Logger() >> [messages.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config, logger=logger),
-                                                                                                        messages.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
-                                                                                                        messages.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
+    server.handler = message.Parser() >> numerator >> pipeline.Parallelizer(loop=loop) >> message.Logger() >> [message.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config, logger=logger),
+                                                                                                        message.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
+                                                                                                        message.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
 
     for element in server.handler:
         element.logger = logger

@@ -1,4 +1,5 @@
-- Sequneznummer vor/bei Parallelisierung vergeben
+- enable daemon: sudo update-rc.d sensation_daemon.sh enable
+- Speicherkarte umkopieren & booten
 - Review
     def func3:
       do_smth()
@@ -51,13 +52,17 @@ PCB printing
 Actor intensity: very strong at first, then dampen -> flight simulator (ask Udo)
 
 Speed optimizations
-  - Check for delays (Unity, network, drivers)
+  - Check for delays
+    - Unity
+    - Network (http://www.tkn.tu-berlin.de/fileadmin/fg112/Papers/hoene_paper2.pdf)
+    - Drivers
   - Fast mode i2c
     - http://www.raspberrypi.org/forums/viewtopic.php?f=44&t=17559
     - http://www.raspberrypi.org/forums/viewtopic.php?f=44&t=69984
     - http://www.raspberrypi.org/forums/viewtopic.php?f=44&t=42451
     - http://arduino-pi.blogspot.de/2014/03/speeding-up-i2c-bus-on-raspberry-pi-and.html
   - different smbus implementation (https://github.com/bivab/smbus-cffi/issues/1)
+  - Use hosted WLAN to reduce WiFi hops
 
 
 Kinect
@@ -139,7 +144,7 @@ py: made parallel processing a pipeline element (961dec5)
 py: pattern loading (7c73b2a) and playback (2a298e9)
 
 py: initialize second I2C bus (76aa149)
-
+py: indexing messages to prevent lost updates (b5ef3f8)
 
 
 
