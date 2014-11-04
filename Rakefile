@@ -3,6 +3,7 @@
 require 'time'
 require 'rb-fsevent'
 require 'colorize'
+require 'json'
 
 PI_HOSTNAME = "sensationdriver.local"
 PI_USER = 'pi'
@@ -79,6 +80,16 @@ task :compile do
     filenames.each do |filename|
         puts `protobuf-generate pbnet #{filename}`
     end
+
+    camel_case = lambda { |s| s.downcase.split(/[\s_]/).map.with_index { |word, index| index.zero? ? word : word.capitalize }.join }
+    properties = []
+    config = JSON.parse IO.read sibling_path('conf', 'actor_conf.json')
+    config['vibration']['regions'].each do |region|
+        region['actors'].each do |actor|
+            properties << "public float #{camel_case.call(region['name'])}_#{camel_case.call(actor['position'])};"
+        end
+    end
+    IO.write(sibling_path('SensationPattern_properties.cs'), properties.join("\n"))
 end
 
 desc "Run unit tests"

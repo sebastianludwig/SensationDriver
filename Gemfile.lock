@@ -13,6 +13,7 @@ GEM
     blankslate (2.1.2.4)
     colorize (0.7.3)
     erubis (2.7.0)
+    json (1.8.1)
     parslet (1.6.1)
       blankslate (~> 2.0)
     rake (10.3.2)
@@ -23,6 +24,7 @@ PLATFORMS
 
 DEPENDENCIES
   colorize
+  json
   protobuf-generate (~> 0.2.4)!
   rake (>= 10.1.0)
   rb-fsevent
