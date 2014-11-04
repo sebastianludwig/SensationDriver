@@ -60,12 +60,12 @@ def main():
 
     server = sensationdriver.Server(loop=loop, logger=logger)
 
-    parallelizer = pipeline.Parallelizer(loop=loop)
-    patter_handler = handler.Patterns(inlet=parallelizer, logger=logger)
+    numerator = pipeline.Numerator()
+    patter_handler = handler.Patterns(inlet=numerator, logger=logger)
 
-    server.handler = messages.Parser() >> parallelizer >> messages.Logger() >> [messages.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config_path, logger=logger),
-                                                                                messages.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
-                                                                                messages.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
+    server.handler = messages.Parser() >> numerator >> pipeline.Parallelizer(loop=loop) >> messages.Logger() >> [messages.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config, logger=logger),
+                                                                                                        messages.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
+                                                                                                        messages.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
 
     for element in server.handler:
         element.logger = logger

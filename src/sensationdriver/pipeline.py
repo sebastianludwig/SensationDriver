@@ -76,6 +76,17 @@ class Element(object):
             pass
 
 
+class Numerator(Element):
+    def __init__(self, downstream=None, logger=None):
+        super().__init__(downstream=downstream, logger=logger)
+        self._index = -1
+
+    @asyncio.coroutine
+    def _process(self, data):
+        self._index += 1
+        return (self._index, data)
+
+
 class Dispatcher(Element):
     def __init__(self, target, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)

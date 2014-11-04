@@ -8,8 +8,8 @@ from . import protocol
 class Parser(pipeline.Element):
     @asyncio.coroutine
     def _process(self, data):
-        message.ParseFromString(data)
         message = protocol.Message()
+        message.ParseFromString(data)
 
         return message
 
@@ -20,10 +20,10 @@ class Logger(pipeline.Element):
         self.level = logging.INFO
 
     @asyncio.coroutine
-    def _process(self, message):
-        self.logger.log(self.level, 'received:\n--\n%s--', message)
+    def _process(self, indexed_message):
+        self.logger.log(self.level, 'received:\n--\n%s--', indexed_message[1])
 
-        return message
+        return indexed_message
 
 
 class TypeFilter(pipeline.Element):
@@ -32,10 +32,12 @@ class TypeFilter(pipeline.Element):
         self.message_type = message_type
 
     @asyncio.coroutine
-    def _process(self, message):
+    def _process(self, indexed_message):
+        message = indexed_message[1]
         if message.type != self.message_type:
             raise pipeline.TerminateProcessing()
 
         attribute = message.MessageType.Name(self.message_type).lower()
 
-        return getattr(message, attribute)
+        child_message = getattr(message, attribute)
+        return (indexed_message[0], child_message)
