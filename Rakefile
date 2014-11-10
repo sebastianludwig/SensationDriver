@@ -81,18 +81,27 @@ task :compile do
         puts `protobuf-generate pbnet #{filename}`
     end
 
-    camel_case = lambda { |s| s.downcase.split(/[\s_]/).map.with_index { |word, index| index.zero? ? word : word.capitalize }.join }
+    camel_case = lambda { |s, capitalize_first = false| s.downcase.split(/[\s_]/).map.with_index { |word, index| (index.zero? and !capitalize_first) ? word : word.capitalize }.join }
     properties = []
+    mappings = []
     config = JSON.parse IO.read sibling_path('conf', 'actor_conf.json')
     config['vibration']['regions'].each do |region|
         region['actors'].each do |actor|
-            properties << "public float #{camel_case.call(region['name'])}_#{camel_case.call(actor['position'])};"
+            property_name = camel_case.call(region['name']) + '_' + camel_case.call(actor['position'])
+            properties << "\tpublic float #{property_name};"
+            mappings << "\t\tpropertyMappings[\"#{property_name}\"] = new ActorLocation(Vibration.Region.#{camel_case.call(region['name'], true)}, #{actor['index']});"
         end
     end
-    IO.write(sibling_path('SensationPattern_properties.cs'), properties.join("\n"))
+
+    mappings.insert(0, "\tstatic SensationPatterns() {")
+    mappings.push("\t}")
+
+    lines = properties + [""] * 2 + mappings
+
+    IO.write(sibling_path('SensationPattern_properties.cs'), lines.join("\n"))
 end
 
-desc "Run unit tests"
+desc "Run unit tests."
 task :test, :pattern do |t, args|
     Dir.chdir(sibling_path('test')) do
         pattern = args.pattern ? "*#{args.pattern}*.py" : '*.py'
