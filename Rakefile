@@ -9,6 +9,7 @@ PI_HOSTNAME = "sensationdriver.local"
 PI_USER = 'pi'
 SERVER_LOG_PATH = File.join('log', 'server.log')
 PYTHON = 'python3.4'
+DAEMON_SCRIPT = 'sensation_daemon.sh'
 
 def sibling_path(*components)
     File.join(File.dirname(__FILE__), components)
@@ -62,10 +63,21 @@ namespace :server do
     desc "Sets up the necessary init.d scripts."
     task :install do
         raise "Only supported on Raspberry Pi" unless is_raspberry?
-        daemon_script = 'sensation_daemon.sh'
-        puts `sudo cp #{sibling_path(['bin', daemon_script])} /etc/init.d/#{daemon_script}`
-        puts `sudo chmod 755 /etc/init.d/#{daemon_script}`
-        puts `sudo update-rc.d #{daemon_script} defaults`
+        puts `sudo cp #{sibling_path(['bin', DAEMON_SCRIPT])} /etc/init.d/#{DAEMON_SCRIPT}`
+        puts `sudo chmod 755 /etc/init.d/#{DAEMON_SCRIPT}`
+        puts `sudo update-rc.d #{DAEMON_SCRIPT} defaults`
+    end
+
+    desc "Enable the init.d scripts."
+    task :enable do
+        raise "Only supported on Raspberry Pi" unless is_raspberry?
+        puts `sudo update-rc.d #{DAEMON_SCRIPT} enable`
+    end
+
+    desc "Disable the init.d scripts."
+    task :disable do
+        raise "Only supported on Raspberry Pi" unless is_raspberry?
+        puts `sudo update-rc.d #{DAEMON_SCRIPT} disable`
     end
 end
 
@@ -214,22 +226,22 @@ namespace :remote do
     namespace :server do
         desc "Starts the sensation server daemon."
         task :start do
-            puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh start")
+            puts ssh_exec("sudo /etc/init.d/#{DAEMON_SCRIPT} start")
         end
 
         desc "Checks the sensation server daemon status."
         task :status do
-            puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh status")
+            puts ssh_exec("sudo /etc/init.d/#{DAEMON_SCRIPT} status")
         end
 
         desc "Stops the sensation server daemon."
         task :stop do
-            puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh stop")
+            puts ssh_exec("sudo /etc/init.d/#{DAEMON_SCRIPT} stop")
         end
 
         desc "Restarts the sensation server daemon."
         task :restart do
-            puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh restart")
+            puts ssh_exec("sudo /etc/init.d/#{DAEMON_SCRIPT} restart")
         end
     end
 
