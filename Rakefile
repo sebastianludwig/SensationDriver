@@ -43,14 +43,14 @@ def ssh_exec(command)
     backtick(ssh_command(command))
 end
 
-desc 'Starts the sensation server'
+desc 'Starts the sensation server.'
 task :server do
     command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-server.py')}'"
     command = "sudo " + command if is_raspberry?
     exec(command)
 end
 
-desc 'Starts an interactive client'
+desc 'Starts an interactive client.'
 task :client, :server do |t, args|
     server = args.server ? args.server : PI_HOSTNAME
     command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-client.py')} #{server}'"
@@ -59,7 +59,7 @@ task :client, :server do |t, args|
 end
 
 namespace :server do
-    desc "Sets up the necessary init.d scripts"
+    desc "Sets up the necessary init.d scripts."
     task :install do
         raise "Only supported on Raspberry Pi" unless is_raspberry?
         daemon_script = 'sensation_daemon.sh'
@@ -69,10 +69,10 @@ namespace :server do
     end
 end
 
-desc "Copies the files, restarts the server and tails the log"
+desc "Copies the files, restarts the server and tails the log."
 task :deploy => ['remote:copy', 'remote:server:restart', 'remote:log:tail']
 
-desc "Compiles the protobuf protocol definitions into python files"
+desc "Compiles the protobuf protocol definitions. Creates the necessary python files, as well as the C# files."
 task :compile do
     filenames = Dir.glob(sibling_path('*.proto'))
     puts `protoc --proto_path='#{File.dirname(__FILE__)}' --python_out='#{sibling_path('src', 'sensationdriver', 'protocol')}' #{filenames.join(' ')}`
@@ -117,6 +117,7 @@ task :test, :pattern do |t, args|
 end
 
 namespace :test do
+    desc "Like test, but keeps watching for file modifications to re-run the tests."
     task :watch, [:pattern] => :test do |t, args|
         fsevent = FSEvent.new
         options = {:latency => 5, :no_defer => true }
@@ -136,7 +137,7 @@ namespace :test do
 end
 
 namespace :dependencies do
-    desc "Install python package dependencies through pip"
+    desc "Install python package dependencies through pip."
     task :install do
         command = "#{PYTHON} -m pip install -r #{sibling_path('requirements.txt')}"
         command = "sudo " + command if is_raspberry?
@@ -145,27 +146,27 @@ namespace :dependencies do
 end
 
 namespace :remote do
-    desc "Connect to the Raspberry via SSH"
+    desc "Connect to the Raspberry via SSH."
     task :login do
         exec(ssh_command)
     end
 
-    desc "Opens a remote desktop via VNC"
+    desc "Opens a remote desktop via VNC."
     task :vnc do
         backtick("open vnc://#{PI_HOSTNAME}:5901")
     end
 
-    desc "Mounts the Raspberry user home directory as drive"
+    desc "Mounts the Raspberry user home directory as drive."
     task :mount do
         backtick("open afp://#{PI_USER}@#{PI_HOSTNAME}/Home\\ Directory")
     end
 
-    desc "Unmounts the Raspberry user home directory"
+    desc "Unmounts the Raspberry user home directory."
     task :unmount do
         backtick("umount '/Volumes/Home Directory'") if `mount`.include? '/Volumes/Home Directory'
     end
 
-    desc "Copy project files to the Raspberry. Uses the configured hostname by default, accepts the IP address as optional argument (rake 'remote:copy[192.168.0.70]')"
+    desc "Copy project files to the Raspberry. Uses the configured hostname by default, accepts the IP address as optional argument (rake 'remote:copy[192.168.0.70]')."
     task :copy, :destination do |t, args|
         args.with_defaults destination: PI_HOSTNAME
         command = "rsync -ar -e \"ssh -l #{PI_USER}\" --delete --exclude '__pycache__/' --exclude 'lib' --exclude 'include' --exclude='.*' --exclude '*.log' #{File.dirname(__FILE__)}/ #{args.destination}:#{remote_project_path}"
@@ -173,6 +174,7 @@ namespace :remote do
     end
 
     namespace :copy do
+        desc "Like copy, but keeps watching for file modifications to copy the files again."
         task :watch => :copy do
             ip = nil
 
@@ -198,45 +200,45 @@ namespace :remote do
         end
     end
 
-    desc "Reboots the Raspberry"
+    desc "Reboots the Raspberry."
     task :reboot => :unmount do
         ssh_exec("sudo reboot")
     end
 
-    desc "Shuts the Raspberry down"
+    desc "Shuts the Raspberry down."
     task :shutdown => :unmount do
         ssh_exec("sudo shutdown -h now")
     end
 
     namespace :server do
-        desc "Starts the sensation server daemon"
+        desc "Starts the sensation server daemon."
         task :start do
             puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh start")
         end
 
-        desc "Checks the sensation server daemon status"
+        desc "Checks the sensation server daemon status."
         task :status do
             puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh status")
         end
 
-        desc "Stops the sensation server daemon"
+        desc "Stops the sensation server daemon."
         task :stop do
             puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh stop")
         end
 
-        desc "Restarts the sensation server daemon"
+        desc "Restarts the sensation server daemon."
         task :restart do
             puts ssh_exec("sudo /etc/init.d/sensation_daemon.sh restart")
         end
     end
 
     namespace :log do
-        desc "Tails the log on the Raspberry"
+        desc "Tails the log on the Raspberry."
         task :tail do
             exec(ssh_command("tail -f -n 10 #{File.join(remote_project_path, SERVER_LOG_PATH)}"));
         end
 
-        desc "Empties the logfile on the Raspberry"
+        desc "Empties the logfile on the Raspberry."
         task :clean do
             ssh_exec("cat /dev/null > #{File.join(requirements, SERVER_LOG_PATH)}")
         end
@@ -244,19 +246,19 @@ namespace :remote do
 end
 
 namespace :log do
-    desc "Tails the log"
+    desc "Tails the log."
     task :tail do
         exec("tail -f -n 10 #{sibling_path(SERVER_LOG_PATH)}")
     end
 
-    desc "Empties the logfile"
+    desc "Empties the logfile."
     task :clean do
         `cat /dev/null > #{sibling_path(SERVER_LOG_PATH)}`
     end
 end
 
 namespace :backup do
-    desc 'Creates a gzipped backup of the SD card. Accepts optional filname addition parameters (rake "backup:create[param1, param2]")'
+    desc 'Creates a gzipped backup of the SD card. Accepts optional filname addition parameters (rake "backup:create[param1, param2]").'
     task :create do |t, args|
         puts `diskutil list`
         puts "\nEnter disk number: [2..n]"
