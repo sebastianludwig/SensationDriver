@@ -140,6 +140,7 @@ namespace :dependencies do
     desc "Install python package dependencies through pip."
     task :install do
         command = "#{PYTHON} -m pip install -r #{sibling_path('requirements.txt')}"
+        command += " -r #{sibling_path('requirements_rpi.txt')}" if is_raspberry?
         command = "sudo " + command if is_raspberry?
         puts `#{command}`
     end
