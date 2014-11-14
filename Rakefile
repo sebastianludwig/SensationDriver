@@ -291,4 +291,39 @@ namespace :backup do
         answer = STDIN.gets.strip
         `open #{File.dirname(output_path)}` if answer == 'y'
     end
+
+    desc 'Restores a previously created backup.'
+    task :restore do |t, args|
+        backups = []
+        Dir.chdir sibling_path do
+            backups = Dir.glob('*.{img.gz,img}')
+        end
+
+        raise "No backups found in #{sibling_path}" if backups.empty?
+
+        backups.each_with_index do |path, index|
+            puts "#{index}\t#{path}"
+        end
+        puts
+        puts "Choose backup to restore:"
+        backup_path = backups[STDIN.gets.strip.to_i]
+        puts
+
+        puts `sudo diskutil list`
+        puts "\nEnter disk number (dev/diskX): [2..n]"
+        disk_number = STDIN.gets.strip.to_i
+        raise "Disk number below 2 - probably wrong.." if disk_number < 2
+
+        puts `diskutil unmountDisk /dev/disk#{disk_number}`
+
+        puts "Restoring backup #{File.basename(backup_path)} - this may take a while.. c[´]"
+
+        if File.extname(backup_path) == '.gz'
+            puts `gzip -dc "#{backup_path}" | sudo dd bs=1M of=/dev/rdisk#{disk_number}`
+        else
+            puts `sudo dd bs=1M of=/dev/rdisk#{disk_number}`
+        end
+
+        puts "Finished"        
+    end
 end
