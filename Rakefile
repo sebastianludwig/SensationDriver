@@ -273,18 +273,19 @@ end
 namespace :backup do
     desc 'Creates a gzipped backup of the SD card. Accepts optional filname addition parameters (rake "backup:create[param1, param2]").'
     task :create do |t, args|
-        puts `diskutil list`
-        puts "\nEnter disk number: [2..n]"
+        puts `sudo diskutil list`
+        puts "\nEnter disk number (dev/diskX): [2..n]"
         disk_number = STDIN.gets.strip.to_i
         raise "Disk number below 2 - probably wrong.." if disk_number < 2
 
         filename = ['sensationdriver', Time.now.strftime('%Y%m%d_%H%M')] + args.extras
         output_path = sibling_path(filename.join('_').gsub(' ', '_') + '.img.gz')
 
+        puts `diskutil unmountDisk /dev/disk#{disk_number}`
+
         puts "Creating backup #{File.basename(output_path)} - this may take a while.. c[´]"
 
-        puts `diskutil unmountDisk /dev/disk#{disk_number}`
-        puts `sudo dd bs=1m if=/dev/rdisk#{disk_number} | gzip > '#{output_path}'`
+        puts `sudo dd bs=1M if=/dev/rdisk#{disk_number} | gzip > '#{output_path}'`
 
         puts "Finished: #{File.basename(output_path)} (#{'%.2f' % (File.size(output_path) / (1000.0 ** 3))} GB) - open in Finder? [y/n]"
         answer = STDIN.gets.strip
