@@ -59,7 +59,7 @@ task :client, :server do |t, args|
     exec(command)
 end
 
-namespace :server do
+namespace :daemon do
     desc "Sets up the necessary init.d scripts."
     task :install do
         raise "Only supported on Raspberry Pi" unless is_raspberry?
