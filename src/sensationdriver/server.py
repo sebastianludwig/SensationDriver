@@ -59,12 +59,12 @@ class Server(object):
 
         self._clients[task] = (client_reader, client_writer)
 
-    def client_ip(self, client_writer):
+    def _client_ip(self, client_writer):
         return client_writer.get_extra_info('peername')[0]
 
     @asyncio.coroutine
     def _handle_client(self, client_reader, client_writer):
-        client_ip = self.client_ip(client_writer)
+        client_ip = self._client_ip(client_writer)
         self.logger.info("connection from {0}".format(client_ip))
         try:
             while True:
@@ -109,7 +109,7 @@ class Server(object):
             if pending:
                 for task in pending:
                     client_writer = self._clients[task][1]
-                    self.logger.error("could not disconnect client %s", self.client_ip(client_writer))
+                    self.logger.error("could not disconnect client %s", self._client_ip(client_writer))
 
         self._server.close()
         self._loop.run_until_complete(self._server.wait_closed())
