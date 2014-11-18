@@ -113,7 +113,7 @@ task :compile do
     IO.write(sibling_path('SensationPattern_properties.cs'), lines.join("\n"))
 end
 
-desc "Run unit tests."
+desc "Run unit tests. Pass a filename pattern to only run these tests (rake test[actors])."
 task :test, :pattern do |t, args|
     Dir.chdir(sibling_path('test')) do
         pattern = args.pattern ? "*#{args.pattern}*.py" : '*.py'
@@ -129,7 +129,7 @@ task :test, :pattern do |t, args|
 end
 
 namespace :test do
-    desc "Like test, but keeps watching for file modifications to re-run the tests."
+    desc "Like test, but keeps watching for file modifications to re-run the tests. Also accepts a filename pattern."
     task :watch, [:pattern] => :test do |t, args|
         fsevent = FSEvent.new
         options = {:latency => 5, :no_defer => true }
