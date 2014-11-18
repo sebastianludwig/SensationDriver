@@ -86,7 +86,7 @@ class I2C(object):
         logger = logger if logger is not None else logging.getLogger('root')
 
         if cls._piRevision() < 2:
-            raise RuntimeError("Rev 2 or greater Raspberry Pi required.")
+            raise RuntimeError("Raspberry Pi Rev 2 or greater required.")
 
         # Use /dev/mem to gain access to peripheral registers
         mf = os.open("/dev/mem", os.O_RDWR | os.O_SYNC)
