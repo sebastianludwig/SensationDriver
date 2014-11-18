@@ -91,6 +91,8 @@ class Server(object):
         self._server = self._loop.run_until_complete(future_server)
         self.logger.info('server started, listening on %s:%s', self.ip, self.port)
 
+        return self
+
     def __exit__(self, type, value, traceback):
         """Ought to be called with no asyncio event loop running"""
 
