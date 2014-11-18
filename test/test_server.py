@@ -56,3 +56,7 @@ class TestServer(unittest.TestCase):
         server.handler = handler
         with server:
             self.assertEqual(handler.set_up_called_counter, 1)
+
+
+if __name__ == '__main__':
+    unittest.main()

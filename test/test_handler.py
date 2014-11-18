@@ -85,3 +85,6 @@ class TestVibration(AsyncTestCase):
 
         self.assertAlmostEqual(self.actor_three.intensity, 0.5)
 
+
+if __name__ == '__main__':
+    unittest.main()

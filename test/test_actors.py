@@ -486,3 +486,7 @@ class TestActorConfigParsing(unittest.TestCase):
         self.assertEqual(actor.min_intensity, 63)
         self.assertEqual(actor.min_intensity_warmup, 64)
         self.assertEqual(actor.min_instant_intensity, 65)
+
+
+if __name__ == '__main__':
+    unittest.main()

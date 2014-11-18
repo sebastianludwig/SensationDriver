@@ -243,3 +243,6 @@ class TestTrack(unittest.TestCase):
         value = self.track.advance(0.4)
         self.assertAlmostEqual(value, 0.326737, delta=0.000001)
 
+
+if __name__ == '__main__':
+    unittest.main()

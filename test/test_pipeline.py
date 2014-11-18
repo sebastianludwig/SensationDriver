@@ -267,3 +267,7 @@ class TestParallelizer(AsyncTestCase):
         yield from asyncio.wait(parallelizer._workers, loop=self.loop, timeout=2)
 
         self.assertTrue(any("raise TestException()" in line for line in logger.log))
+
+
+if __name__ == '__main__':
+    unittest.main()
