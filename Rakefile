@@ -4,6 +4,8 @@ require 'time'
 require 'rb-fsevent'
 require 'colorize'
 require 'json'
+require 'open3'
+require 'thread'
 
 PI_HOSTNAME = "sensationdriver.local"
 PI_USER = 'pi'
@@ -325,5 +327,73 @@ namespace :backup do
         end
 
         puts "Finished"        
+    end
+end
+
+namespace :time do
+    desc 'Start time synchronization. On the Raspberry a PTP client is started, otherwise a PTP server is started. The client waits till a decent synchronization is reached.'
+    task :sync do
+        if is_raspberry?
+            puts `sudo /etc/init.d/ntp stop`
+
+            mutex = Mutex.new
+            client_ready = ConditionVariable.new
+            synced = ConditionVariable.new
+
+            poll_status = Thread.new do
+                mutex.synchronize { client_ready.wait(mutex) }
+                puts "Trying to reach stable offset < 0.0001..."
+                counter = 0
+                loop do
+                    status = `cat /var/run/ptpd2.status`
+                    offset_info = /Offset from Master[^\n]+/.match status
+                    if offset_info
+                        print "\r" + offset_info.to_s.chomp
+                        if /[-\d\.]+/.match(offset_info.to_s).to_s.to_f.abs < 0.0001
+                            counter += 1
+                        else
+                            counter = 0
+                        end
+                        if counter > 30
+                            break
+                        end
+                    else
+                        print("\rWaiting for server...")
+                    end
+                    sleep 0.5
+                end
+                puts
+                puts "Sync complete"
+                puts
+                synced.signal
+            end
+
+            client = Thread.new do
+                command = "sudo #{sibling_path('bin', 'ptpd2_pi')} -c #{sibling_path('conf', 'ptp_client.conf')} -V"
+                Open3.popen2e(command) do |stdin, stdout, wait_thread|
+                    stdin.close
+                    stdout.each do |line|
+                        puts line
+                        if line.include? 'New best master selected'
+                            puts
+                            mutex.synchronize do 
+                                client_ready.signal
+                                synced.wait(mutex)
+                            end
+                        end
+                    end
+                end
+            end
+
+            begin
+                poll_status.join
+                client.join
+            ensure
+                puts
+                puts `sudo /etc/init.d/ntp start`
+            end
+        else
+            exec("sudo #{sibling_path('bin', 'ptpd2_osx')} -c #{sibling_path('conf', 'ptp_server.conf')} -V")
+        end
     end
 end
