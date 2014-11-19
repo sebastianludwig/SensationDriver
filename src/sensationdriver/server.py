@@ -4,11 +4,11 @@ import traceback
 
 
 class Server(object):
-    def __init__(self, loop=None, logger=None):
+    def __init__(self, ip='', loop=None, logger=None):
         self.logger = logger if logger is not None else logging.getLogger('root')
         self._loop = loop if loop is not None else asyncio.get_event_loop()
 
-        self.ip = ''
+        self.ip = ip
         self.port = 10000
 
         self._handler = None

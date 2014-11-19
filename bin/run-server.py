@@ -58,7 +58,11 @@ def main():
     with open(project.relative_path('conf', 'actor_conf.json')) as f:
         actor_config = actors.parse_config(yaml.load(f), logger=logger)
 
-    server = sensationdriver.Server(loop=loop, logger=logger)
+    if len(sys.argv) >= 2:
+        ip = sys.argv[1]
+    else:
+        ip = ''
+    server = sensationdriver.Server(ip=ip, loop=loop, logger=logger)
 
     numerator = pipeline.Numerator()
     patter_handler = handler.Pattern(inlet=numerator, logger=logger)

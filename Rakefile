@@ -47,8 +47,8 @@ def ssh_exec(command)
 end
 
 desc 'Starts the sensation server.'
-task :server do
-    command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-server.py')}'"
+task :server, :interface_ip do |t, args|
+    command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-server.py')} #{args.interface_ip}'"
     command = "sudo " + command if is_raspberry?
     exec(command)
 end
