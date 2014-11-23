@@ -11,21 +11,10 @@ class Server(object):
         self.ip = ip
         self.port = 10000
 
-        self._handler = None
+        self.handler = None
         self._handler_set_up = False
         self._server = None     # asyncio.Server
         self._clients = {}      # asyncio.Task -> (asyncio.StreamReader, asyncio.StreamWriter)
-
-    @property
-    def handler(self):
-        return self._handler
-
-    @handler.setter
-    def handler(self, value):
-        """Ought to be called with no asyncio event loop running"""
-        self._tear_down_handler()
-        self._handler = value
-        self._set_up_handler()
 
     def _set_up_handler(self):
         if self._handler_set_up or self.handler is None:

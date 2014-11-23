@@ -17,20 +17,6 @@ class TestServer(unittest.TestCase):
         def tear_down(self):
             self.tear_down_called_counter += 1
 
-    def test_handler_set_up_called_on_assignment(self):
-        server = Server()
-        handler = self.MemoryHandler()
-        server.handler = handler
-        self.assertEqual(handler.set_up_called_counter, 1)
-
-    def test_handler_tear_down_called_on_reassigment(self):
-        server = Server()
-        handler1 = self.MemoryHandler()
-        handler2 = self.MemoryHandler()
-        server.handler = handler1
-        server.handler = handler2
-        self.assertEqual(handler1.tear_down_called_counter, 1)
-
     def test_handler_torn_down_after_server_usage(self):
         server = Server()
         handler = self.MemoryHandler()
