@@ -12,7 +12,10 @@ class Vibration(pipeline.Element):
     def __init__(self, actor_config, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)
 
-        self.drivers = actor_config['drivers']
+        self._actor_config = actor_config
+
+    def process_actor_config(self):
+        self.drivers = self._actor_config['drivers']
         for driver in self.drivers:
             # TODO use ALLCALL address to set PWM frequency
             driver.setPWMFreq(1700)                        # Set max frequency to (~1,6kHz) # TODO test different frequencies
@@ -20,7 +23,7 @@ class Vibration(pipeline.Element):
 
         self.actors = {}
         self.processed_message_indices = {}
-        for region_name, actors in actor_config['regions'].items():
+        for region_name, actors in self._actor_config['regions'].items():
             try:
                 region_index = protocol.Vibration.Region.Value(region_name)
 
@@ -37,6 +40,8 @@ class Vibration(pipeline.Element):
                 continue
 
     def _set_up(self):
+        self.process_actor_config()
+
         for driver in self.drivers:
             driver.setAllPWM(0, 0)
         # TODO reset all actors
