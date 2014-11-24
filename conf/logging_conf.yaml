@@ -5,7 +5,7 @@ formatters:
 handlers:
   console:
     class: logging.StreamHandler
-    level: DEBUG
+    level: INFO
     formatter: simple
     stream: ext://sys.stdout
   file:
@@ -14,9 +14,13 @@ handlers:
     formatter: simple
     filename: 'server.log'
 loggers:
-  default:
-    level: INFO
+  debug:
+    level: DEBUG
     handlers: [console, file]
+    propagate: no
+  production:
+    level: INFO
+    handlers: [file]
     propagate: no
 root:
   level: ERROR

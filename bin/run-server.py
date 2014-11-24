@@ -7,6 +7,7 @@ import yaml
 import asyncio
 import signal
 import sys
+import functools
 
 import project
 
@@ -31,19 +32,19 @@ else:
 def file_logger(filename):    # used in logging_conf.yaml
     return logging.FileHandler(project.relative_path('log', filename))
 
-with open(project.relative_path('conf', 'logging_conf.yaml')) as f:
-    logging.config.dictConfig(yaml.load(f))
 
-logger = logging.getLogger('default')
-
-
-def excepthook(*args):
+def excepthook(logger, *args):
   logger.critical('Uncaught exception:', exc_info=args)
-
-sys.excepthook = excepthook
 
 
 def main():
+    with open(project.relative_path('conf', 'logging_conf.yaml')) as f:
+        logging.config.dictConfig(yaml.load(f))
+        logger = logging.getLogger('debug')
+    sys.excepthook = functools.partial(excepthook, logger)
+
+
+
     wirebus.I2C.configurePinouts(logger)
     pca9685.Driver.softwareReset()
 
