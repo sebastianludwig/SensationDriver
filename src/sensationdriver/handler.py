@@ -46,6 +46,11 @@ class Vibration(pipeline.Element):
             driver.setAllPWM(0, 0)
         # TODO reset all actors
 
+        if self.profiler is not None:
+            for region_index, region_actors in self.actors.items():
+                for index, actor in region_actors.items():
+                    actor.profiler = self.profiler
+
     def _tear_down(self):
         if not __debug__:
             for driver in self.drivers:
@@ -55,6 +60,8 @@ class Vibration(pipeline.Element):
     def _process(self, indexed_vibration):
         message_index = indexed_vibration[0]
         vibration = indexed_vibration[1]
+
+        self._profile("vibration", vibration)
 
         if not self._should_process_message(message_index, vibration):
             return indexed_vibration

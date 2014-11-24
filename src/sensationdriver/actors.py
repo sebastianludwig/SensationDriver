@@ -121,6 +121,7 @@ class VibrationMotor(object):
         self.index_in_region = index_in_region
         self.position = position
         self.logger = logger if logger is not None else logging.getLogger('root')
+        self.profiler = None
 
         self.mapping_curve_degree = 1.5       # degree of the function used to map intensity values from [0, 1] to the supported motor range. Use '2' for square, '3' for cubic and so on. No matter which degree, it is ensured an intensity of 0 is always off and an intensity of 1 always equals full motor intensity. Only supports positive values.
         self.min_intensity = 0.3              # minimum intensity at which the motor will keep running (maybe after being startet at a higher intensity)
@@ -131,6 +132,10 @@ class VibrationMotor(object):
         self._target_intensity = self._intensity.eval()
         self.__current_intensity = 0
         self._running_since = None
+
+    def _profile(self, *args):
+        if self.profiler is not None: 
+            self.profiler.log(*args)
 
     def _map_intensity(self, intensity):
         return self.min_intensity + (1 - self.min_intensity) * intensity ** self.mapping_curve_degree
@@ -161,6 +166,8 @@ class VibrationMotor(object):
         self.logger.debug("setting %s to %.3f", self.position, value)
         self.__current_intensity = value
         
+        self._profile("command", self.index_in_region, self.__current_intensity)
+
         self.driver.setPWM(self.outlet, 0, self.__current_intensity)
         if value < self._SENSITIVITY:
             self._running_since = None
@@ -183,10 +190,15 @@ class VibrationMotor(object):
 
 
         if self._can_set_directly(self._target_intensity):
+            self._profile("actor", self.index_in_region, intensity, priority, self._target_intensity, 'direct')
+
             self._current_intensity = self._target_intensity
         else:
             if self._current_intensity < self.min_intensity:
                 self._current_intensity = self.min_instant_intensity
             delay = self.min_intensity_warmup - self._running_time()
+
+            self._profile("actor", self.index_in_region, intensity, priority, self._target_intensity, 'delayed', delay)
+
             yield from asyncio.sleep(delay)
             self._current_intensity = self._target_intensity

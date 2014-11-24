@@ -10,6 +10,7 @@ class Element(object):
     def __init__(self, downstream=None, logger=None):
         self.logger = logger if logger is not None else logging.getLogger('root')
         self.downstream = downstream
+        self.profiler = None
 
     def __rshift__(self, rhs):
         last = self
@@ -23,6 +24,10 @@ class Element(object):
         for successor in self._successors():
             for element in successor:
                 yield element
+
+    def _profile(self, *args):
+        if self.profiler is not None:
+            self.profiler.log(*args)
 
     def _successors(self):
         if isinstance(self.downstream, list):

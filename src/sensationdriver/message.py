@@ -11,6 +11,8 @@ class Parser(pipeline.Element):
         message = protocol.Message()
         message.ParseFromString(data)
 
+        self._profile('parser', message)
+
         return message
 
 
