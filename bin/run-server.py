@@ -38,9 +38,25 @@ def excepthook(logger, *args):
 
 
 def main():
+    if sys.argv[-1] in ["profile", "debug", "production"]:
+        mode = sys.argv[-1]
+
+    if (len(sys.argv) >= 2 and mode is None) or len(sys.argv) >= 3:
+        ip = sys.argv[1]
+    else:
+        ip = ''
+
+    if mode is None:
+        mode = "production"
+
     with open(project.relative_path('conf', 'logging_conf.yaml')) as f:
         logging.config.dictConfig(yaml.load(f))
+
+    if mode == "debug":
         logger = logging.getLogger('debug')
+    else:
+        logger = logging.getLogger('production')
+
     sys.excepthook = functools.partial(excepthook, logger)
 
 
@@ -50,7 +66,7 @@ def main():
 
 
     loop = asyncio.get_event_loop()
-    loop.set_debug(True)
+    loop.set_debug(mode == "debug")
 
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, loop.stop)
@@ -59,21 +75,24 @@ def main():
     with open(project.relative_path('conf', 'actor_conf.json')) as f:
         actor_config = actors.parse_config(yaml.load(f), logger=logger)
 
-    if len(sys.argv) >= 2:
-        ip = sys.argv[1]
-    else:
-        ip = ''
+
     server = sensationdriver.Server(ip=ip, loop=loop, logger=logger)
 
     numerator = pipeline.Numerator()
     patter_handler = handler.Pattern(inlet=numerator, logger=logger)
 
-    server.handler = message.Parser() >> numerator >> pipeline.Parallelizer(loop=loop) >> message.Logger() >> [message.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config, logger=logger),
-                                                                                                        message.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
-                                                                                                        message.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
-
+    server.handler = message.Parser() >> numerator >> pipeline.Parallelizer(loop=loop) >> message.Logger() >> [message.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config),
+                                                                                                                message.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
+                                                                                                                message.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
+    
     for element in server.handler:
         element.logger = logger
+
+    if mode == "profile":
+        profiler = sensationdriver.Profiler()
+
+        for element in server.handler:
+            element.profiler = profiler
 
     try:
         with server:
