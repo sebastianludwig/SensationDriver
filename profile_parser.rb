@@ -92,21 +92,21 @@ puts "Read #{commands.size} commands..."
 # [[all command to actor 0], [all commands to actor 1], ...]
 grouped_by_actor = commands.group_by { |command| command[:actor] } .values
 
-COMMAND_ORDER = {
-    probe: 0,
-    send: 1, 
-    parse: 2, 
-    process: 3,
-    set_intensity: 4,
-    set_pwm: 5
-}
+COMMAND_ORDER = [
+    :probe,
+    :send,
+    :parse,
+    :process,
+    :set_intensity,
+    :set_pwm
+]
 
 # [[[all commands to 0 with intensity x], [all command to 0 with intensity y], [all command to ...]], [...]]
 grouped_by_actor.map! do |actor_commands| 
     commands_grouped_by_intensity = actor_commands.group_by { |command| command[:intensity] }.values
     # sort entries in each group by time and command precendence
     commands_grouped_by_intensity.map do |intensity_group| 
-        intensity_group.sort_by { |command| [command[:time], COMMAND_ORDER[command[:action]]] }
+        intensity_group.sort_by { |command| [ command[:time], COMMAND_ORDER.find_index([command[:action]]) ] }
     end
 end
 
