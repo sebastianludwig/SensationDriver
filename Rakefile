@@ -333,6 +333,14 @@ namespace :backup do
 end
 
 namespace :time do
+    namespace :sync do
+        desc 'Shows the current time synchronization status.'
+        task :status do
+            # TODO check if ptpd2 is running and report if not
+            puts `cat /var/run/ptpd2.status`
+        end
+    end
+
     desc 'Start time synchronization. On the Raspberry a PTP client is started, otherwise a PTP server is started. The client waits till a decent synchronization is reached.'
     task :sync do
         if is_raspberry?
