@@ -96,6 +96,9 @@ def main():
 
     try:
         with server:
+            up_and_running = "Server running with configuration %s (not critical, just to let you know..)" % mode
+            print(up_and_running)
+            logger.critical(up_and_running)
             loop.run_forever()
     finally:
         loop.close()
