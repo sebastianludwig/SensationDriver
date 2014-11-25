@@ -61,7 +61,7 @@ class Vibration(pipeline.Element):
         message_index = indexed_vibration[0]
         vibration = indexed_vibration[1]
 
-        self._profile("vibration", vibration)
+        self._profile("process", vibration)
 
         if not self._should_process_message(message_index, vibration):
             return indexed_vibration

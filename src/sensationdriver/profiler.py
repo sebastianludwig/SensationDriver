@@ -10,9 +10,10 @@ class Profiler(object):
     def __del__(self):
         self.file.close()
 
-    def log(self, *text):
+    def log(self, action, *text):
         def convert(text):
             return str(text).replace("\n", ';')
 
         timestamp = round(time.time() * 1000)
-        self.file.write(str(timestamp) + ';' + ';'.join(map(convert, text)) + "\n")
+        text = (action, timestamp) + text
+        self.file.write(';'.join(map(convert, text)) + "\n")

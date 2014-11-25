@@ -25,9 +25,9 @@ class Element(object):
             for element in successor:
                 yield element
 
-    def _profile(self, *args):
+    def _profile(self, action, *args):
         if self.profiler is not None:
-            self.profiler.log(*args)
+            self.profiler.log(action, *args)
 
     def _successors(self):
         if isinstance(self.downstream, list):

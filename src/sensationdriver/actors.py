@@ -133,9 +133,9 @@ class VibrationMotor(object):
         self.__current_intensity = 0
         self._running_since = None
 
-    def _profile(self, *args):
+    def _profile(self, action, *args):
         if self.profiler is not None: 
-            self.profiler.log(*args)
+            self.profiler.log(action, *args)
 
     def _map_intensity(self, intensity):
         return self.min_intensity + (1 - self.min_intensity) * intensity ** self.mapping_curve_degree
@@ -166,7 +166,7 @@ class VibrationMotor(object):
         self.logger.debug("setting %s to %.3f", self.position, value)
         self.__current_intensity = value
         
-        self._profile("command", self.index_in_region, self.__current_intensity)
+        self._profile("set_pwm", self.index_in_region, self.__current_intensity)
 
         self.driver.setPWM(self.outlet, 0, self.__current_intensity)
         if value < self._SENSITIVITY:
@@ -190,7 +190,7 @@ class VibrationMotor(object):
 
 
         if self._can_set_directly(self._target_intensity):
-            self._profile("actor", self.index_in_region, intensity, priority, self._target_intensity, 'direct')
+            self._profile("set_intensity", self.index_in_region, intensity, priority, self._target_intensity, 'direct')
 
             self._current_intensity = self._target_intensity
         else:
@@ -198,7 +198,7 @@ class VibrationMotor(object):
                 self._current_intensity = self.min_instant_intensity
             delay = self.min_intensity_warmup - self._running_time()
 
-            self._profile("actor", self.index_in_region, intensity, priority, self._target_intensity, 'delayed', delay)
+            self._profile("set_intensity", self.index_in_region, intensity, priority, self._target_intensity, 'delayed', delay)
 
             yield from asyncio.sleep(delay)
             self._current_intensity = self._target_intensity

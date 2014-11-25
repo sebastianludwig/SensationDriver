@@ -10,8 +10,7 @@ class Parser(pipeline.Element):
     def _process(self, data):
         message = protocol.Message()
         message.ParseFromString(data)
-
-        self._profile('parser', message)
+        self._profile('parse', message)
 
         return message
 
