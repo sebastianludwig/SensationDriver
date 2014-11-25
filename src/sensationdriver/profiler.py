@@ -1,10 +1,7 @@
-
 import time
-import datetime
 
 class Profiler(object):
-    def __init__(self):
-        path = "sensation_server_profile_{:%Y%m%d_%H%M}.txt".format(datetime.datetime.now())
+    def __init__(self, path):
         self.file = open(path, 'w', 262144)       # 256 KiB buffer
 
     def __del__(self):

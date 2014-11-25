@@ -8,6 +8,7 @@ import asyncio
 import signal
 import sys
 import functools
+import datetime
 
 import project
 
@@ -81,15 +82,16 @@ def main():
     numerator = pipeline.Numerator()
     patter_handler = handler.Pattern(inlet=numerator, logger=logger)
 
-    server.handler = message.Parser() >> numerator >> pipeline.Parallelizer(loop=loop) >> message.Logger() >> [message.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config),
-                                                                                                                message.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
-                                                                                                                message.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
+    server.handler = message.Parser() #>> numerator >> pipeline.Parallelizer(loop=loop) >> message.Logger() >> [message.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config),
+                                      #                                                                          message.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
+                                      #                                                                          message.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
     
     for element in server.handler:
         element.logger = logger
 
     if mode == "profile":
-        profiler = sensationdriver.Profiler()
+        profile_log_path = project.relative_path('log', "sensation_server_profile_{:%Y%m%d_%H%M}.txt".format(datetime.datetime.now()))
+        profiler = sensationdriver.Profiler(profile_log_path)
 
         for element in server.handler:
             element.profiler = profiler
