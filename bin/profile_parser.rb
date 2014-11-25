@@ -115,14 +115,14 @@ grouped_by_actor_and_intensity = grouped_by_actor.reduce(:+)
 
 def split_by_time_coherence(actor_intensity_commands)
     return [actor_intensity_commands]
-    time_buckets = []
-    last_timestamp = 0
-    actor_intensity_commands.each do |entry|
-        time_buckets << [] if (entry[:time] - last_timestamp).abs > 250
-        time_buckets.last << entry
-        last_timestamp = entry[:time]
-    end
-    time_buckets
+    # time_buckets = []
+    # last_timestamp = 0
+    # actor_intensity_commands.each do |entry|
+    #     time_buckets << [] if (entry[:time] - last_timestamp).abs > 250
+    #     time_buckets.last << entry
+    #     last_timestamp = entry[:time]
+    # end
+    # time_buckets
 end
 
 grouped_by_actor_and_intensity.map! do |actor_intensity_commands|
