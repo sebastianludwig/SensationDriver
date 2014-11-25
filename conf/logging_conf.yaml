@@ -19,7 +19,7 @@ loggers:
     handlers: [console, file]
     propagate: no
   production:
-    level: INFO
+    level: ERROR
     handlers: [file]
     propagate: no
 root:
