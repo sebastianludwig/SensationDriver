@@ -150,9 +150,29 @@ command_sequences.map! do |commands|
     commands.map { |c| Hash[c[:action] => c[:time]].merge(c.select {|k,| k != :action and k != :time }) }.reduce(:merge)
 end
 
+# calculate some differences (new_name = second - first)
+DIFFS = { 
+    probe_send: [:probe, :send], 
+    send_parse: [:send, :parse], 
+    parsing: [:parse_pre, :parse], 
+    parse_process: [:parse, :process], 
+    process_set_intensity: [:process, :set_intensity],
+    set_intensity_set_pwm: [:set_intensity, :set_pwm],
+    total: [:probe, :set_pwm],
+    undelayed_total: [:delay, :total]
+}
+command_sequences.map! do |commands|
+    DIFFS.each do |name, parts|
+        commands[name] = commands[parts[1]] - commands[parts[0]] if parts.all? { |p| commands.include? p }
+    end
+    commands
+end
 
 def csv(command_sequences, filename)
-    field_order = [:actor, :intensity, :probe, :send, :parse, :process, :set_intensity, :set_pwm, :delay]
+    return if command_sequences.empty?
+
+    field_order = [:actor, :intensity, :probe, :probe_send, :send_parse, :parsing, :parse_process, :process_set_intensity, :set_intensity_set_pwm, :delay, :undelayed_total]
+    field_order.reject! { |field| !command_sequences[0].include? field }
     File.open(filename, 'w') do |file|
         file.write(field_order.map { |field| field.capitalize }.join(';') + "\n")
         command_sequences.each do |commands|
