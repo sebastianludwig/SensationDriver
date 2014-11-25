@@ -8,6 +8,7 @@ MOTOR_MIN_INTENSITY = 0.3
 MAPPING_CURVE_DEGREE = 1.5
 #------------------------------------------
 
+Dir.chdir File.expand_path("../log", File.dirname(__FILE__))
 
 def select_file(kind, pattern)
     logs = Dir.glob(pattern).sort
@@ -145,6 +146,13 @@ command_sequences.reject! { |commands| commands.map { |c| c[:action] } != REGULA
 puts "Rejected 'malformed' sqeuences - #{command_sequences.size} sequences remaining..."
 
 
+# output = []
+# command_sequences[0, 100].each do |commands|
+#     output << commands.join("\n")
+# end
+# `echo "#{output.join("\n\n\n")}" > profile_temp.js`
+
+
 # turn sequences into a single hash with all the information combined {actor: 3, intensity: 0.710, probe: 1416867348512, send:.., parse:.., process:..., set_intensity:..., set_pwm:..., target_intensity:..., mode: :direct, delay: 0.0, mapped_intensity: 0.719})
 command_sequences.map! do |commands|
     commands.map { |c| Hash[c[:action] => c[:time]].merge(c.select {|k,| k != :action and k != :time }) }.reduce(:merge)
@@ -169,8 +177,6 @@ command_sequences.map! do |commands|
 end
 
 def csv(command_sequences, filename)
-    return if command_sequences.empty?
-
     field_order = [:actor, :intensity, :probe, :probe_send, :send_parse, :parsing, :parse_process, :process_set_intensity, :set_intensity_set_pwm, :delay, :undelayed_total]
     field_order.reject! { |field| !command_sequences[0].include? field }
     File.open(filename, 'w') do |file|
@@ -181,18 +187,13 @@ def csv(command_sequences, filename)
     end
 end
 
-
-# output = []
-# command_sequences.each do |commands|
-#     output << commands
-# end
-# `echo "#{output.join("\n")}" > profile_temp3.js`
-
-
-csv_file = "profile_#{Time.now().strftime('%Y%m%d_%H%M')}.csv"
-puts "Writing output to #{csv_file}..."
-csv(command_sequences, csv_file)
-
+if command_sequences.empty?
+    puts "Nothing remaid - there's no output :-("
+else
+    csv_file = "profile_#{Time.now().strftime('%Y%m%d_%H%M')}.csv"
+    puts "Writing output to #{csv_file}..."
+    csv(command_sequences, csv_file)
+end
 
 puts "Done!"
 
