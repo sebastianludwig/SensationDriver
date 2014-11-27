@@ -3,9 +3,11 @@
 import project
 import sys
 import re
+import time
+import random
+
 sys.path.append(project.relative_path('src'))
 
-import time
 
 import sensationdriver
 from sensationdriver import protocol
@@ -17,8 +19,9 @@ if len(sys.argv) < 2:
 client = sensationdriver.Client()
 client.connect(sys.argv[1], 10000)
 
-def send(client, target_region, actor_index, priority, intensity):
-    print("setting %d.%d => %0.2f @ %d" % (target_region, actor_index, intensity, priority))
+def send(client, target_region, actor_index, priority, intensity, silent=False):
+    if not silent:
+        print("setting %d.%d => %0.2f @ %d" % (target_region, actor_index, intensity, priority))
     vibration = protocol.Vibration()
     vibration.target_region = target_region
     vibration.actor_index = actor_index
@@ -85,6 +88,10 @@ else:                       # interactive mode
     print("test region:     `test_region`                short: `tr`")
     print("test all:        `test_all`                   short: `ta`")
     print("manual test:     `test_manual`                short: `tm`")
+    print()
+    print("profiling:       `profile`")
+    print()
+    print("reconnect:       `reconnect`")
     print()
     print("exit:            `exit`, Ctrl+D or Ctrl+C")
     print("-----------------------------------------------------------------")
@@ -153,6 +160,21 @@ else:                       # interactive mode
                         start = not start
                     send(client, region, test_actor, priority, 0)
                     print("Manual test stopped.")
+                elif line == "profile":
+                    for _ in range(0, 1):
+                        number_of_messages = 5000
+                        counter = 0
+                        start = time.time() * 1000
+                        for i in range(0, number_of_messages - 5):
+                            counter += 1
+                            send(client, region, int(random.random() * 5), priority, random.random(), True)
+                        for i in range(0, 5):
+                            counter += 1
+                            send(client, region, i, priority, 0, True)
+                        end = time.time() * 1000
+                        print("Finished sending %d messages: %.0f ms" % (counter, end - start))
+                elif line == "reconnect":
+                    client.reconnect()
                 else:
                     print("Unknown command:", line)
                         
