@@ -55,7 +55,7 @@ def parse_line(action, line)
             intensity: match[:intensity].to_f,
             target_intensity: match[:target_intensity].to_f,
             mode: match[:mode].to_sym,
-            delay: match[:delay].to_f / 10000,
+            delay: match[:delay].to_f * 10000,
         }
     else
         command = {
