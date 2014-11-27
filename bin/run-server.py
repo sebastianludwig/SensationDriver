@@ -39,6 +39,7 @@ def excepthook(logger, *args):
 
 
 def main():
+    mode = None
     if sys.argv[-1] in ["profile", "debug", "production"]:
         mode = sys.argv[-1]
 
