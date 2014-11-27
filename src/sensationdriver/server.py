@@ -55,19 +55,44 @@ class Server(object):
     def _handle_client(self, client_reader, client_writer):
         client_ip = self._client_ip(client_writer)
         self.logger.info("connection from {0}".format(client_ip))
+
+        # This could be written much shorter, but the Pi performance is very deficient. 
+        # The used operations are chosen considerately.
         try:
+            buffer = bytes()
+            message_size = None
+
+            start_index = 0
+            buffer_length = len(buffer)
             while True:
-                data = yield from client_reader.readexactly(4)
-                message_size = int.from_bytes(data, byteorder='big')
+                new_data = yield from client_reader.read(4096)
+                if not new_data:
+                    self.logger.info('client %s disconnected', client_ip)
+                    break
 
-                message = yield from client_reader.readexactly(message_size)
+                new_data_length = len(new_data)
 
-                if self.handler is not None:
-                    yield from self.handler.process(message)
+                buffer = buffer[start_index:buffer_length] + new_data
+                buffer_length = buffer_length - start_index + new_data_length
+                start_index = 0
+
+                # parse everything we received
+                while True:
+                    if message_size is None and buffer_length - start_index >= 4:            # message_size to parse
+                        message_size = int.from_bytes(buffer[start_index:start_index + 4], byteorder='big')
+                        start_index += 4
+                    elif message_size and buffer_length - start_index >= message_size:      # message to parse
+                        message = buffer[start_index:start_index + message_size]
+                        if self.handler is not None:
+                            yield from self.handler.process(message)
+                        start_index += message_size
+                        message_size = None
+                    else:        # neither -> need more data
+                        break
+
         except asyncio.CancelledError:
             self.logger.info('disconnecting client %s', client_ip)
-        except asyncio.IncompleteReadError:
-            self.logger.info('client %s disconnected', client_ip)
+            
 
     def __enter__(self):
         """Ought to be called with no asyncio event loop running"""
