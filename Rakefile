@@ -17,6 +17,10 @@ def sibling_path(*components)
     File.join(File.dirname(__FILE__), components)
 end
 
+def terminal_title(title)
+    `/bin/bash -c 'echo -n -e \"\033]0;#{title}\007\" > /dev/tty'`
+end
+
 def remote_project_path
     "/home/pi/projects/#{File.basename(File.dirname(__FILE__))}"
 end
@@ -199,6 +203,7 @@ namespace :remote do
             options = {:latency => 5, :no_defer => true }
             fsevent.watch File.dirname(__FILE__), options do |directories|
                 puts "syncing..."
+                terminal_title "syncing..."
                 unless ip
                     parts = `ping -c 1 #{PI_HOSTNAME}`.split
                     if parts.size >= 3
@@ -212,6 +217,9 @@ namespace :remote do
 
                 `rake -f #{__FILE__} "remote:copy[#{ip}]"`
                 puts "#{Time.now.strftime('%H:%M:%S')}: synced"
+                terminal_title "synced"
+                sleep(1)
+                terminal_title "copy:watch"
             end
             fsevent.run
         end
