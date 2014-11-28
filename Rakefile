@@ -405,8 +405,11 @@ namespace :time do
     namespace :sync do
         desc 'Shows the current time synchronization status.'
         task :status do
-            # TODO check if ptpd2 is running and report if not
-            puts `cat /var/run/ptpd2.status`
+            if `ps -a | grep ptpd2`.strip.empty?
+                puts "Time synchronization not active. Execute `rake time:sync` to start synchronization."
+            else 
+                puts `cat /var/run/ptpd2.status`
+            end
         end
     end
 
@@ -423,28 +426,37 @@ namespace :time do
                 mutex.synchronize { client_ready.wait(mutex) }
                 puts "Trying to reach stable offset < 0.0001..."
                 counter = 0
-                loop do
-                    status = `cat /var/run/ptpd2.status`
-                    offset_info = /Offset from Master[^\n]+/.match status
-                    if offset_info
-                        print "\r" + offset_info.to_s.chomp
-                        if /[-\d\.]+/.match(offset_info.to_s).to_s.to_f.abs < 0.0001
-                            counter += 1
+                begin
+                    loop do
+                        status = `cat /var/run/ptpd2.status`
+                        offset_info = /Offset from Master[^\n]+/.match status
+                        if offset_info
+                            offset = /[-\d\.]+/.match(offset_info.to_s).to_s
+                            terminal_title "sync: #{offset}" 
+                            if counter < 30
+                                print "\r" + offset_info.to_s.chomp
+
+                                if offset.to_f.abs < 0.0001
+                                    counter += 1
+                                else
+                                    counter = 0
+                                end
+                            elsif counter == 30
+                                puts
+                                puts "Sync complete"
+                                puts
+                                synced.signal
+                                counter += 1
+                            end
                         else
-                            counter = 0
+                            print("\rWaiting for server...")
                         end
-                        if counter > 30
-                            break
-                        end
-                    else
-                        print("\rWaiting for server...")
+                        sleep 0.5
                     end
-                    sleep 0.5
+                ensure
+                    terminal_title ""
                 end
-                puts
-                puts "Sync complete"
-                puts
-                synced.signal
+                
             end
 
             client = Thread.new do
