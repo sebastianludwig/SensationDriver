@@ -50,47 +50,15 @@ def ssh_exec(command)
     backtick(ssh_command(command))
 end
 
-desc 'Starts the sensation server.'
-task :server do |t, args|
-    extras = args.extras
-    extras << 'debug' if (extras & ['debug', 'production', 'profile']).empty?
-    command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-server.py')} #{extras.join(' ')}'"
-    command = "sudo " + command if is_raspberry?
-    exec(command)
-end
-
-desc 'Starts an interactive client.'
-task :client, :server do |t, args|
-    server = args.server ? args.server : PI_HOSTNAME
-    command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-client.py')} #{server}'"
-    command = "sudo " + command if is_raspberry?
-    exec(command)
-end
-
-namespace :daemon do
-    desc "Sets up the necessary init.d scripts."
+namespace :dependencies do
+    desc "Install python package dependencies through pip."
     task :install do
-        raise "Only supported on Raspberry Pi" unless is_raspberry?
-        puts `sudo cp #{sibling_path(['bin', DAEMON_SCRIPT])} /etc/init.d/#{DAEMON_SCRIPT}`
-        puts `sudo chmod 755 /etc/init.d/#{DAEMON_SCRIPT}`
-        puts `sudo update-rc.d #{DAEMON_SCRIPT} defaults`
-    end
-
-    desc "Enable the init.d scripts."
-    task :enable do
-        raise "Only supported on Raspberry Pi" unless is_raspberry?
-        puts `sudo update-rc.d #{DAEMON_SCRIPT} enable`
-    end
-
-    desc "Disable the init.d scripts."
-    task :disable do
-        raise "Only supported on Raspberry Pi" unless is_raspberry?
-        puts `sudo update-rc.d #{DAEMON_SCRIPT} disable`
+        command = "#{PYTHON} -m pip install -r #{sibling_path('requirements.txt')}"
+        command += " -r #{sibling_path('requirements_rpi.txt')}" if is_raspberry?
+        command = "sudo " + command if is_raspberry?
+        puts `#{command}`
     end
 end
-
-desc "Copies the files, restarts the server and tails the log."
-task :deploy => ['remote:copy', 'remote:server:restart', 'remote:log:tail']
 
 desc "Compiles the protobuf protocol definitions. Creates the necessary python files, as well as the C# files."
 task :compile do
@@ -156,15 +124,48 @@ namespace :test do
     end
 end
 
-namespace :dependencies do
-    desc "Install python package dependencies through pip."
+desc 'Starts the sensation server.'
+task :server do |t, args|
+    extras = args.extras
+    extras << 'debug' if (extras & ['debug', 'production', 'profile']).empty?
+    command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-server.py')} #{extras.join(' ')}'"
+    command = "sudo " + command if is_raspberry?
+    exec(command)
+end
+
+desc 'Starts an interactive client.'
+task :client, :server do |t, args|
+    server = args.server ? args.server : PI_HOSTNAME
+    command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-client.py')} #{server}'"
+    command = "sudo " + command if is_raspberry?
+    exec(command)
+end
+
+namespace :daemon do
+    desc "Sets up the necessary init.d scripts."
     task :install do
-        command = "#{PYTHON} -m pip install -r #{sibling_path('requirements.txt')}"
-        command += " -r #{sibling_path('requirements_rpi.txt')}" if is_raspberry?
-        command = "sudo " + command if is_raspberry?
-        puts `#{command}`
+        raise "Only supported on Raspberry Pi" unless is_raspberry?
+        puts `sudo cp #{sibling_path(['bin', DAEMON_SCRIPT])} /etc/init.d/#{DAEMON_SCRIPT}`
+        puts `sudo chmod 755 /etc/init.d/#{DAEMON_SCRIPT}`
+        puts `sudo update-rc.d #{DAEMON_SCRIPT} defaults`
+    end
+
+    desc "Enable the init.d scripts."
+    task :enable do
+        raise "Only supported on Raspberry Pi" unless is_raspberry?
+        puts `sudo update-rc.d #{DAEMON_SCRIPT} enable`
+    end
+
+    desc "Disable the init.d scripts."
+    task :disable do
+        raise "Only supported on Raspberry Pi" unless is_raspberry?
+        puts `sudo update-rc.d #{DAEMON_SCRIPT} disable`
     end
 end
+
+desc "Copies the files, restarts the daemon and tails the log."
+task :deploy => ['remote:copy', 'remote:daemon:restart', 'remote:log:tail']
+
 
 namespace :remote do
     desc "Connect to the Raspberry via SSH."
@@ -235,7 +236,7 @@ namespace :remote do
         ssh_exec("sudo shutdown -h now")
     end
 
-    namespace :server do
+    namespace :daemon do
         desc "Starts the sensation server daemon."
         task :start do
             puts ssh_exec("sudo /etc/init.d/#{DAEMON_SCRIPT} start")
