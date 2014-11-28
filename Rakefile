@@ -276,7 +276,15 @@ namespace :remote do
     desc "Copy project files to the Raspberry. Uses the configured hostname by default, accepts the IP address as optional argument (rake 'remote:copy[192.168.0.70]')."
     task :copy, :destination do |t, args|
         args.with_defaults destination: PI_HOSTNAME
-        command = "rsync -ar -e \"ssh -l #{PI_USER}\" --delete --exclude '__pycache__/' --exclude 'lib' --exclude 'include' --exclude='.*' --exclude 'log' #{File.dirname(__FILE__)}/ #{args.destination}:#{remote_project_path}"
+        excludes = %w(
+            __pycache__
+            include
+            lib
+            log
+            *.img.gz
+            .*
+        ).map { |e| "--exclude '#{e}'" }
+        command = "rsync -ar -e \"ssh -l #{PI_USER}\" --delete #{excludes.join(' ')} #{File.dirname(__FILE__)}/ #{args.destination}:#{remote_project_path}"
         backtick(command)
     end
 
