@@ -1,5 +1,10 @@
 #encoding: utf-8
 
+
+# call rake -T get a list of all invocable tasks
+# call rake all=true -T to get all tasks
+# call rake [all=true] -D to get a little bit more description
+
 require 'time'
 require 'rb-fsevent'
 require 'colorize'
@@ -12,6 +17,70 @@ PI_USER = 'pi'
 SERVER_LOG_PATH = File.join('log', 'server.log')
 PYTHON = 'python3.4'
 DAEMON_SCRIPT = 'sensation_daemon.sh'
+
+class RemoteTask
+    attr_reader :name, :local_task, :remote_task
+
+    @@tasks = []
+
+    def self.create(scope, name, &definition)
+        @@tasks << RemoteTask.new(scope, name, &definition)
+    end
+
+    def self.tasks;; @@tasks end
+
+    def initialize(scope, name, &definition)
+        @scope = scope
+        @name = name
+        @description = ''
+        instance_eval(&definition)
+    end
+
+    def scope(destination)
+        destination == :remote ? ['remote'] + @scope : @scope.dup
+    end
+
+    def description(destination)
+        if destination == :remote and (!is_raspberry? or ENV['all'])
+            return @description + " on the Raspberry"
+        elsif destination == :local and ((@local_only_on_pi and is_raspberry?) or ENV['all'])
+            return @description
+        end
+    end
+
+    def desc(text)
+        @description = text
+    end
+
+    def local(options = {}, &task)
+        @local_only_on_pi = options.fetch :pi_only, false
+
+        @local_task = Proc.new do
+            raise "Only supported on Raspberry Pi" if @local_only_on_pi and !is_raspberry?
+            task.call()
+        end
+    end
+
+    def remote(&task)
+        @remote_task = Proc.new do
+            raise "Not supported on Raspberry Pi" if is_raspberry?
+            task.call()
+        end
+    end
+
+    def backticks(command, options = {})
+        local(pi_only: options.fetch(:local_only_on_pi, false)) { puts backtick(command) }
+        remote { puts ssh_backtick(command) }
+    end
+end
+
+
+def remote_task(name, &definition)
+    scope = Rake.application().instance_eval { current_scope.path }
+    scope = scope.split(':')
+
+    RemoteTask.create(scope, name, &definition)
+end
 
 def sibling_path(*components)
     File.join(File.dirname(__FILE__), components)
@@ -46,7 +115,7 @@ def ssh_command(command = '')
     ssh_command
 end
 
-def ssh_exec(command)
+def ssh_backtick(command)
     backtick(ssh_command(command))
 end
 
@@ -142,48 +211,64 @@ task :client, :server do |t, args|
 end
 
 namespace :daemon do
-    desc "Sets up the necessary init.d scripts."
-    task :install do
-        raise "Only supported on Raspberry Pi" unless is_raspberry?
-        puts `sudo cp #{sibling_path(['bin', DAEMON_SCRIPT])} /etc/init.d/#{DAEMON_SCRIPT}`
-        puts `sudo chmod 755 /etc/init.d/#{DAEMON_SCRIPT}`
-        puts `sudo update-rc.d #{DAEMON_SCRIPT} defaults`
+    remote_task :install do
+        desc "Sets up the necessary init.d scripts"
+
+        local pi_only: true do
+            puts `sudo cp #{sibling_path(['bin', DAEMON_SCRIPT])} /etc/init.d/#{DAEMON_SCRIPT}`
+            puts `sudo chmod 755 /etc/init.d/#{DAEMON_SCRIPT}`
+            puts `sudo update-rc.d #{DAEMON_SCRIPT} defaults`
+        end    
     end
 
-    desc "Enable the init.d scripts."
-    task :enable do
-        raise "Only supported on Raspberry Pi" unless is_raspberry?
-        puts `sudo update-rc.d #{DAEMON_SCRIPT} enable`
+    remote_task :enable do
+        desc "Enable the init.d scripts"
+        backticks 'sudo update-rc.d #{DAEMON_SCRIPT} enable', local_only_on_pi: true
+    end
+    
+    remote_task :disable do
+        desc "Disable the init.d scripts"
+        backticks 'sudo update-rc.d #{DAEMON_SCRIPT} disable', local_only_on_pi: true
     end
 
-    desc "Disable the init.d scripts."
-    task :disable do
-        raise "Only supported on Raspberry Pi" unless is_raspberry?
-        puts `sudo update-rc.d #{DAEMON_SCRIPT} disable`
+    remote_task :start do
+        desc "Starts the sensation server daemon"
+        backticks "sudo /etc/init.d/#{DAEMON_SCRIPT} start", local_only_on_pi: true
+    end
+
+    remote_task :status do
+        desc "Checks the sensation server daemon status"
+        backticks "sudo /etc/init.d/#{DAEMON_SCRIPT} status", local_only_on_pi: true
+    end
+
+    remote_task :stop do
+        desc "Stops the sensation server daemon"
+        backticks "sudo /etc/init.d/#{DAEMON_SCRIPT} stop", local_only_on_pi: true
+    end
+    
+    remote_task :restart do
+        desc "Restarts the sensation server daemon"
+        backticks "sudo /etc/init.d/#{DAEMON_SCRIPT} restart", local_only_on_pi: true
     end
 end
 
-desc "Copies the files, restarts the daemon and tails the log."
-task :deploy => ['remote:copy', 'remote:daemon:restart', 'remote:log:tail']
-
-
 namespace :remote do
-    desc "Connect to the Raspberry via SSH."
+    desc "Connect to the Raspberry via SSH"
     task :login do
         exec(ssh_command)
     end
 
-    desc "Opens a remote desktop via VNC."
+    desc "Opens a remote desktop via VNC"
     task :vnc do
         backtick("open vnc://#{PI_HOSTNAME}:5901")
     end
 
-    desc "Mounts the Raspberry user home directory as drive."
+    desc "Mounts the Raspberry user home directory as drive"
     task :mount do
         backtick("open afp://#{PI_USER}@#{PI_HOSTNAME}/Home\\ Directory")
     end
 
-    desc "Unmounts the Raspberry user home directory."
+    desc "Unmounts the Raspberry user home directory"
     task :unmount do
         backtick("umount '/Volumes/Home Directory'") if `mount`.include? '/Volumes/Home Directory'
     end
@@ -196,90 +281,65 @@ namespace :remote do
     end
 
     namespace :copy do
-        desc "Like copy, but keeps watching for file modifications to copy the files again."
+        desc "Like copy, but keeps watching for file modifications to copy the files again"
         task :watch => :copy do
-            ip = nil
+            begin
+                terminal_title "copy:watch"
+                ip = nil
 
-            fsevent = FSEvent.new
-            options = {:latency => 5, :no_defer => true }
-            fsevent.watch File.dirname(__FILE__), options do |directories|
-                puts "syncing..."
-                terminal_title "syncing..."
-                unless ip
-                    parts = `ping -c 1 #{PI_HOSTNAME}`.split
-                    if parts.size >= 3
-                        md = parts[2].match(/(?:\d{0,3}\.){3}\d{0,3}/)
-                        if md
-                            ip = md[0]
-                            puts "#{PI_HOSTNAME} IP resolved to #{ip}"
+                fsevent = FSEvent.new
+                options = {:latency => 5, :no_defer => true }
+                fsevent.watch File.dirname(__FILE__), options do |directories|
+                    puts "syncing..."
+                    terminal_title "syncing..."
+                    unless ip
+                        parts = `ping -c 1 #{PI_HOSTNAME}`.split
+                        if parts.size >= 3
+                            md = parts[2].match(/(?:\d{0,3}\.){3}\d{0,3}/)
+                            if md
+                                ip = md[0]
+                                puts "#{PI_HOSTNAME} IP resolved to #{ip}"
+                            end
                         end
                     end
-                end
 
-                `rake -f #{__FILE__} "remote:copy[#{ip}]"`
-                puts "#{Time.now.strftime('%H:%M:%S')}: synced"
-                terminal_title "synced"
-                sleep(1)
-                terminal_title "copy:watch"
+                    `rake -f #{__FILE__} "remote:copy[#{ip}]"`
+                    puts "#{Time.now.strftime('%H:%M:%S')}: synced"
+                    terminal_title "synced"
+                    sleep(1)
+                    terminal_title "copy:watch"
+                end
+                fsevent.run
+            ensure
+                terminal_title ""
             end
-            fsevent.run
         end
     end
 
-    desc "Reboots the Raspberry."
-    task :reboot => :unmount do
-        ssh_exec("sudo reboot")
+    desc "Reboots the Raspberry"
+    task :reboot => :unmount do         # TODO support dependencies in remote_task
+        ssh_backtick("sudo reboot")
     end
 
     desc "Shuts the Raspberry down."
     task :shutdown => :unmount do
-        ssh_exec("sudo shutdown -h now")
-    end
-
-    namespace :daemon do
-        desc "Starts the sensation server daemon."
-        task :start do
-            puts ssh_exec("sudo /etc/init.d/#{DAEMON_SCRIPT} start")
-        end
-
-        desc "Checks the sensation server daemon status."
-        task :status do
-            puts ssh_exec("sudo /etc/init.d/#{DAEMON_SCRIPT} status")
-        end
-
-        desc "Stops the sensation server daemon."
-        task :stop do
-            puts ssh_exec("sudo /etc/init.d/#{DAEMON_SCRIPT} stop")
-        end
-
-        desc "Restarts the sensation server daemon."
-        task :restart do
-            puts ssh_exec("sudo /etc/init.d/#{DAEMON_SCRIPT} restart")
-        end
-    end
-
-    namespace :log do
-        desc "Tails the log on the Raspberry."
-        task :tail do
-            exec(ssh_command("tail -f -n 10 #{File.join(remote_project_path, SERVER_LOG_PATH)}"));
-        end
-
-        desc "Empties the logfile on the Raspberry."
-        task :clean do
-            ssh_exec("cat /dev/null > #{File.join(requirements, SERVER_LOG_PATH)}")
-        end
+        ssh_backtick("sudo shutdown -h now")
     end
 end
 
 namespace :log do
-    desc "Tails the log."
-    task :tail do
-        exec("tail -f -n 10 #{sibling_path(SERVER_LOG_PATH)}")
+    remote_task :tail do
+        desc "Tails the log"
+
+        local { exec("tail -f -n 10 #{sibling_path(SERVER_LOG_PATH)}") }
+        remote { exec(ssh_command("tail -f -n 10 #{File.join(remote_project_path, SERVER_LOG_PATH)}")) }
     end
 
-    desc "Empties the logfile."
-    task :clean do
-        `cat /dev/null > #{sibling_path(SERVER_LOG_PATH)}`
+    remote_task :clean do
+        desc "Empties the logfile"
+
+        local { backtick "cat /dev/null > #{sibling_path(SERVER_LOG_PATH)}" }
+        remote { ssh_backtick("cat /dev/null > #{File.join(remote_project_path, SERVER_LOG_PATH)}") }
     end
 end
 
@@ -416,3 +476,24 @@ namespace :time do
         end
     end
 end
+
+
+def define_task(scope, name, description, actions)
+    if scope.empty?
+        desc description
+        task name do
+            actions.call()
+        end
+    else
+        namespace scope.pop do
+            define_task(scope, name, description, actions)
+        end
+    end
+end
+
+def define_remote_task(dsl)
+    define_task(dsl.scope(:local).reverse, dsl.name, dsl.description(:local), dsl.local_task) if dsl.local_task
+    define_task(dsl.scope(:remote).reverse, dsl.name, dsl.description(:remote), dsl.remote_task) if dsl.remote_task
+end
+
+RemoteTask.tasks.each { |dsl| define_remote_task dsl }
