@@ -52,9 +52,8 @@ class Vibration(pipeline.Element):
                     actor.profiler = self.profiler
 
     def _tear_down(self):
-        if not __debug__:
-            for driver in self.drivers:
-                driver.setAllPWM(0, 0)
+        for driver in self.drivers:
+            driver.setAllPWM(0, 0)
 
     @asyncio.coroutine
     def _process(self, indexed_vibration):
