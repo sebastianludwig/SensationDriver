@@ -18,6 +18,10 @@ SERVER_LOG_PATH = File.join('log', 'server.log')
 PYTHON = 'python3.4'
 DAEMON_SCRIPT = 'sensation_daemon.sh'
 
+######
+
+CLEAR_END_OF_LINE = "\033[K"
+
 class RemoteTask
     attr_reader :name, :local_task, :remote_task
 
@@ -442,7 +446,7 @@ namespace :time do
                             offset = /[-\d\.]+/.match(offset_info.to_s).to_s
                             terminal_title "sync: #{offset}" 
                             if counter < 30
-                                print "\r" + offset_info.to_s.chomp
+                                print "\r" + offset_info.to_s.chomp + CLEAR_END_OF_LINE
 
                                 if offset.to_f.abs < 0.0001
                                     counter += 1
@@ -493,6 +497,46 @@ namespace :time do
             end
         else
             exec("sudo #{sibling_path('bin', 'ptpd2_osx')} -c #{sibling_path('conf', 'ptp_server.conf')} -V")
+        end
+    end
+end
+
+namespace :performance do
+    task :monitor do
+        # for more commands see http://elinux.org/RPI_vcgencmd_usage
+        clocks = %w(arm core h264 isp v3d).map { |clock| [clock.to_sym, Proc.new { `vcgencmd measure_clock #{clock}`.strip.split('=')[1].to_f / 1000000 } ] }
+        clocks = Hash[clocks]
+
+        voltages = %w(core sdram_c sdram_i sdram_p).map { |part| [part.to_sym, Proc.new { `vcgencmd measure_volts #{part}`.strip.split('=')[1].to_f } ] }
+        voltages = Hash[voltages]
+
+        ram = %w(arm gpu).map { |cpu| [cpu.to_sym, Proc.new { `vcgencmd get_mem #{cpu}`.strip.split('=')[1].to_i } ] }
+
+        stats = { load: Proc.new { `top -d 0.5 -b -n2 | grep "Cpu(s)"|tail -n 1 | awk '{print $2 + $4}'`.strip.to_f },
+                    temperature: Proc.new { `vcgencmd measure_temp`.strip.split('=')[1].to_f } }
+
+        begin
+            needs_jump = false
+            while true do
+                current_stats = Hash[stats.map { |name, proc| [name, proc.call] }]
+                terminal_title "%3.0f %% - %3.1f °C" % current_stats.values
+                lines = []
+                lines += ["Temperature:\t%3.1f °C" % current_stats[:temperature], "CPU load:\t%3.0f %" % current_stats[:load]]
+                lines += ["", "Frequencies"]
+                lines += clocks.map { |name, proc| "#{name}:\t\t%4.0f Hz" % proc.call }
+                lines += ["", "Voltages"]
+                lines += voltages.map { |name, proc| "#{name}:#{"\t" * ((9 - name.length) / 4.0).ceil}%.3f V" % proc.call }
+                lines += ["", "RAM"]
+                lines += ram.map { |name, proc| "#{name}:\t\t%3d MB" % proc.call }
+                puts "\033[#{lines.count + 1}A" if needs_jump
+                puts lines.join("\n")
+                needs_jump = true
+                sleep 1
+            end
+        rescue Interrupt
+            puts
+        ensure
+            terminal_title ""
         end
     end
 end
