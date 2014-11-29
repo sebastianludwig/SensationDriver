@@ -1,12 +1,15 @@
 #!/usr/bin/env python3.4
 
-import project
+import os
 import time
 import timeit
 import line_profiler
 
+def relative_path(*segments):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', *segments)
+
 import sys
-sys.path.append(project.relative_path('src'))
+sys.path.append(relative_path('..', 'src'))
 
 import sensationdriver
 from sensationdriver import protocol
