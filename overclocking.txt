@@ -1,0 +1,238 @@
+http://elinux.org/RPiconfig#Overclocking
+http://elinux.org/RPI_vcgencmd_usage
+
+- run protobuf benchmark
+    noop: 4.398809000122128e-06
+    serialize: 0.0010983162838599993
+    parse: 0.0010130825915300012
+- run nbench
+    BYTEmark* Native Mode Benchmark ver. 2 (10/95)
+    Index-split by Andrew D. Balsa (11/97)
+    Linux/Unix* port by Uwe F. Mayer (12/96,11/97)
+
+    TEST                : Iterations/sec.  : Old Index   : New Index
+                        :                  : Pentium 90* : AMD K6/233*
+    --------------------:------------------:-------------:------------
+    NUMERIC SORT        :          216.24  :       5.55  :       1.82
+    STRING SORT         :          30.511  :      13.63  :       2.11
+    BITFIELD            :      8.3116e+07  :      14.26  :       2.98
+    FP EMULATION        :           41.39  :      19.86  :       4.58
+    FOURIER             :          2353.7  :       2.68  :       1.50
+    ASSIGNMENT          :          2.6113  :       9.94  :       2.58
+    IDEA                :          693.62  :      10.61  :       3.15
+    HUFFMAN             :          427.35  :      11.85  :       3.78
+    NEURAL NET          :          3.1923  :       5.13  :       2.16
+    LU DECOMPOSITION    :           79.96  :       4.14  :       2.99
+    ==========================ORIGINAL BYTEMARK RESULTS==========================
+    INTEGER INDEX       : 11.509
+    FLOATING-POINT INDEX: 3.845
+    Baseline (MSDOS*)   : Pentium* 90, 256 KB L2-cache, Watcom* compiler 10.0
+    ==============================LINUX DATA BELOW===============================
+    CPU                 : ARMv6-compatible processor rev 7 (v6l)
+    L2 Cache            : 
+    OS                  : Linux 3.12.32+
+    C compiler          : gcc version 4.6.3 (Debian 4.6.3-14+rpi1) 
+    libc                : libc-2.13.so
+    MEMORY INDEX        : 2.530
+    INTEGER INDEX       : 3.158
+    FLOATING-POINT INDEX: 2.133
+    Baseline (LINUX)    : AMD K6/233*, 512 KB L2-cache, gcc 2.7.2.3, libc-5.4.38
+    * Trademarks are property of their respective holder.
+
+- update everything (esp. firmware)
+    sudo rpi-update
+    sudo reboot
+    sudo apt-get update
+    sudo apt-get dist-upgrade
+- find out RAM split
+    - ARM: 448 MB
+    - GPU: 64 MB
+- re-run
+    noop: 1.5037459000041053e-05
+    serialize: 0.00104459978171
+    parse: 0.0009636557228099997
+
+    BYTEmark* Native Mode Benchmark ver. 2 (10/95)
+    Index-split by Andrew D. Balsa (11/97)
+    Linux/Unix* port by Uwe F. Mayer (12/96,11/97)
+
+    TEST                : Iterations/sec.  : Old Index   : New Index
+                        :                  : Pentium 90* : AMD K6/233*
+    --------------------:------------------:-------------:------------
+    NUMERIC SORT        :          215.35  :       5.52  :       1.81
+    STRING SORT         :           30.49  :      13.62  :       2.11
+    BITFIELD            :      8.2722e+07  :      14.19  :       2.96
+    FP EMULATION        :          41.207  :      19.77  :       4.56
+    FOURIER             :          2343.5  :       2.67  :       1.50
+    ASSIGNMENT          :          2.5702  :       9.78  :       2.54
+    IDEA                :          690.61  :      10.56  :       3.14
+    HUFFMAN             :          426.03  :      11.81  :       3.77
+    NEURAL NET          :          3.1809  :       5.11  :       2.15
+    LU DECOMPOSITION    :          79.928  :       4.14  :       2.99
+    ==========================ORIGINAL BYTEMARK RESULTS==========================
+    INTEGER INDEX       : 11.448
+    FLOATING-POINT INDEX: 3.835
+    Baseline (MSDOS*)   : Pentium* 90, 256 KB L2-cache, Watcom* compiler 10.0
+    ==============================LINUX DATA BELOW===============================
+    CPU                 : ARMv6-compatible processor rev 7 (v6l)
+    L2 Cache            : 
+    OS                  : Linux 3.12.28+
+    C compiler          : gcc version 4.6.3 (Debian 4.6.3-14+rpi1) 
+    libc                : libc-2.13.so
+    MEMORY INDEX        : 2.512
+    INTEGER INDEX       : 3.146
+    FLOATING-POINT INDEX: 2.127
+    Baseline (LINUX)    : AMD K6/233*, 512 KB L2-cache, gcc 2.7.2.3, libc-5.4.38
+    * Trademarks are property of their respective holder.
+
+- sudo raspi-config -> Turbo
+    noop: 2.7998980001484595e-06
+    serialize: 0.0007043929330900005
+    parse: 0.0006474371973799999
+
+    BYTEmark* Native Mode Benchmark ver. 2 (10/95)
+    Index-split by Andrew D. Balsa (11/97)
+    Linux/Unix* port by Uwe F. Mayer (12/96,11/97)
+
+    TEST                : Iterations/sec.  : Old Index   : New Index
+                        :                  : Pentium 90* : AMD K6/233*
+    --------------------:------------------:-------------:------------
+    NUMERIC SORT        :          317.24  :       8.14  :       2.67
+    STRING SORT         :           43.93  :      19.63  :       3.04
+    BITFIELD            :      1.1967e+08  :      20.53  :       4.29
+    FP EMULATION        :          59.696  :      28.64  :       6.61
+    FOURIER             :          3439.2  :       3.91  :       2.20
+    ASSIGNMENT          :          4.1016  :      15.61  :       4.05
+    IDEA                :           998.8  :      15.28  :       4.54
+    HUFFMAN             :          617.04  :      17.11  :       5.46
+    NEURAL NET          :          4.5133  :       7.25  :       3.05
+    LU DECOMPOSITION    :          124.14  :       6.43  :       4.64
+    ==========================ORIGINAL BYTEMARK RESULTS==========================
+    INTEGER INDEX       : 16.834
+    FLOATING-POINT INDEX: 5.671
+    Baseline (MSDOS*)   : Pentium* 90, 256 KB L2-cache, Watcom* compiler 10.0
+    ==============================LINUX DATA BELOW===============================
+    CPU                 : ARMv6-compatible processor rev 7 (v6l)
+    L2 Cache            : 
+    OS                  : Linux 3.12.28+
+    C compiler          : gcc version 4.6.3 (Debian 4.6.3-14+rpi1) 
+    libc                : libc-2.13.so
+    MEMORY INDEX        : 3.750
+    INTEGER INDEX       : 4.574
+    FLOATING-POINT INDEX: 3.145
+    Baseline (LINUX)    : AMD K6/233*, 512 KB L2-cache, gcc 2.7.2.3, libc-5.4.38
+    * Trademarks are property of their respective holder.
+
+    stresstes:
+        Temperature:    55.9
+        CPU load:       100%
+
+        Frequencies
+        arm:        1000 Hz
+        core:       500 Hz
+        h264:       250 Hz
+        isp:        250 Hz
+        v3d:        250 Hz
+
+        Voltages
+        core:       1.350 V
+        sdram_c:    1.200 V
+        sdram_i:    1.200 V
+        sdram_p:    1.230 V
+
+- custom
+    temp_limit=65
+
+    avoid_pwm_pll=1
+    arm_freq=1100
+    core_freq=550
+
+    sdram_freq=600
+
+    force_turbo=1
+    over_voltage=7
+
+    gpu_mem=16
+    disable_overscan=1
+
+    noop: 2.653904999988299e-06
+    serialize: 0.0006268209056400002
+    parse: 0.0005895343255000001
+
+    BYTEmark* Native Mode Benchmark ver. 2 (10/95)
+    Index-split by Andrew D. Balsa (11/97)
+    Linux/Unix* port by Uwe F. Mayer (12/96,11/97)
+
+    TEST                : Iterations/sec.  : Old Index   : New Index
+                        :                  : Pentium 90* : AMD K6/233*
+    --------------------:------------------:-------------:------------
+    NUMERIC SORT        :          351.68  :       9.02  :       2.96
+    STRING SORT         :          48.722  :      21.77  :       3.37
+    BITFIELD            :      1.3239e+08  :      22.71  :       4.74
+    FP EMULATION        :          65.881  :      31.61  :       7.29
+    FOURIER             :          3804.1  :       4.33  :       2.43
+    ASSIGNMENT          :          4.5564  :      17.34  :       4.50
+    IDEA                :          1103.2  :      16.87  :       5.01
+    HUFFMAN             :             682  :      18.91  :       6.04
+    NEURAL NET          :          5.1834  :       8.33  :       3.50
+    LU DECOMPOSITION    :           137.2  :       7.11  :       5.13
+    ==========================ORIGINAL BYTEMARK RESULTS==========================
+    INTEGER INDEX       : 18.633
+    FLOATING-POINT INDEX: 6.350
+    Baseline (MSDOS*)   : Pentium* 90, 256 KB L2-cache, Watcom* compiler 10.0
+    ==============================LINUX DATA BELOW===============================
+    CPU                 : ARMv6-compatible processor rev 7 (v6l)
+    L2 Cache            : 
+    OS                  : Linux 3.12.28+
+    C compiler          : gcc version 4.6.3 (Debian 4.6.3-14+rpi1) 
+    libc                : libc-2.13.so
+    MEMORY INDEX        : 4.158
+    INTEGER INDEX       : 5.056
+    FLOATING-POINT INDEX: 3.522
+    Baseline (LINUX)    : AMD K6/233*, 512 KB L2-cache, gcc 2.7.2.3, libc-5.4.38
+    * Trademarks are property of their respective holder.
+
+    stresstest:
+        Temperature:    56.1 °C
+        CPU load:    98 %
+
+        Frequencies
+        arm:        1100 Hz
+        core:        550 Hz
+        h264:          0 Hz
+        isp:           0 Hz
+        v3d:           0 Hz
+
+        Voltages
+        core:       1.380 V
+        sdram_c:    1.200 V
+        sdram_i:    1.200 V
+        sdram_p:    1.230 V
+
+        RAM
+        arm:        496 MB
+        gpu:         16 MB
+
+
+- minimize GPU ram / bandwidth
+    http://www.raspberrypi.org/forums/viewtopic.php?f=29&t=8891
+    ramspeed -b 6 -l 5 -r
+        FL-POINT BatchRun  Copy:      279.83 Mb/s
+        FL-POINT BatchRun  Scale:     256.75 Mb/s
+        FL-POINT BatchRun  Add:       260.68 Mb/s
+        FL-POINT BatchRun  Triad:     261.24 Mb/s
+        ---
+        FL-POINT BatchRun  AVERAGE:   264.62 Mb/s
+    hdmi_group=1
+    hdmi_mode=23
+    rc.local
+        fbset -xres 16 -yres 16 -vxres 16 -vyres 16 -depth 16
+        /opt/vc/bin/tvservice -o
+    ramspeed -b 6 -l 5 -r
+        FL-POINT BatchRun  Copy:      276.94 Mb/s
+        FL-POINT BatchRun  Scale:     247.30 Mb/s
+        FL-POINT BatchRun  Add:       260.06 Mb/s
+        FL-POINT BatchRun  Triad:     260.45 Mb/s
+        ---
+        FL-POINT BatchRun  AVERAGE:   261.19 Mb/s
+    => No effect -> reverted

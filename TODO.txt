@@ -1,6 +1,7 @@
 http://www.raspberrypi.org/forums/viewtopic.php?t=92304
 
-- tool to merge and group log entries
+- Back powering via P8: https://github.com/raspberrypi/hats/blob/master/designguide.md
+- Optimize with -O (https://docs.python.org/2/using/cmdline.html#cmdoption-O)
 - Rename actors to actor, test_patterns to test_pattern
 - Add "loop" parameter to pattern (also match text) - if there's a loop, there also needs to be a stop....
 - Improve pattern sampling
@@ -58,7 +59,7 @@ PCB printing
   - https://www.oshpark.com
   - http://www.oshstencils.com
   - http://www.ofbrooklyn.com/2014/09/6/building-pulse-bloom-biofeedback-burning-man-2014/
-Actor intensity: very strong at first, then dampen -> flight simulator (ask Udo)
+
 
 Speed optimizations
   - Check for delays
@@ -189,8 +190,41 @@ Timing analysis:
     X: Establish DateTime precision (http://manski.net/2014/07/high-resolution-clock-in-csharp/ + long & .Ticks)
     
 
+Profiling:
+    Resources:
+        - Overview: http://lanyrd.com/2013/pycon/scdywg/
+        - Overview: https://www.asimihsan.com/presentations/going_faster_with_python/index.html#23
+        - Visualize cProfile output https://code.google.com/p/jrfonseca/wiki/Gprof2Dot
+        - line_profiler https://github.com/rkern/line_profiler
+    Everything over LAN first to rule out WiFi latency
+    π: use htop, iotop and iptraf to figure out what's the bottleneck -> no IO, little traffic, CPU > 95%
+    py: use cProfile + snakeviz (install for Python3!) to get fist insights -> poll() of select.epoll is run 23s (of 99s total)
 
-
+    Server:
+        py: rewrote network package receiving (2c633a8)
+    Parsing:
+        proto: use C++ backed parsing, once Python 3 compability is achieved 
+            https://github.com/google/protobuf/issues/7
+            Maybe try 2.4.1 again: http://yz.mit.edu/wp/fast-native-c-protocol-buffers-from-python/
+        Overclocking
+            see overclocking.txt
+            - 5k messages-test
+                received 95000 bytes in 5985 ms
+                before: > 11000ms
+    I2C:
+        Fm+
+            800 kHz still working
+        Change on the fly: `sudo modprobe -r i2c_bcm2708 && sudo modprobe i2c_bcm2708 baudrate=1000000`
+        At boot time: modify /etc/modprobe.d/i2c.conf: options i2c_bcm2708 baudrate=800000
+    Logging:
+        get rid of it...
+        Clean up auto logger creation pattern
+    Repeated Start? -> Auto Increment!
+        TODO
+            - methods to de/activate AI
+            - BOOL to keep track of status
+            - use either method
+    use assertions for sanity checks
 
 
 
