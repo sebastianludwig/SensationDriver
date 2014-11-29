@@ -25,11 +25,13 @@ class Driver(object):
     __ALL_LED_OFF_H      = 0xFD
 
     # Bits
-    __RESTART            = 0x80
-    __SLEEP              = 0x10
-    __ALLCALL            = 0x01
-    __INVRT              = 0x10
-    __OUTDRV             = 0x04
+    __RESTART            = 1 << 7
+    __AI                 = 1 << 5
+    __SLEEP              = 1 << 4
+    __ALLCALL            = 1 << 0
+
+    __INVRT              = 1 << 4
+    __OUTDRV             = 1 << 2
 
 
     @classmethod
@@ -46,10 +48,10 @@ class Driver(object):
         self.i2c = I2C(address, busnum=busnum, logger=self.logger)
         self.address = address
         if self.logger is not None:
-            self.logger.debug("Reseting PCA9685 MODE1 (without SLEEP) and MODE2")
+            self.logger.debug("Reseting PCA9685 MODE1 (without SLEEP, but with AI) and MODE2")
         self.setAllPWM(0, 0)
         self.i2c.write8(self.__MODE2, self.__OUTDRV)
-        self.i2c.write8(self.__MODE1, self.__ALLCALL)
+        self.i2c.write8(self.__MODE1, self.__ALLCALL | self.__AI)
         time.sleep(0.005)                                       # wait for oscillator
 
     def wakeUp(self):
@@ -66,6 +68,7 @@ class Driver(object):
 
     def setPWMFreq(self, freq):
         "Sets the PWM frequency"
+
         # calculate pre scale (datasheet section 7.3.5)
         prescaleval = 25000000.0    # 25MHz
         prescaleval /= 4096.0       # 12-bit
@@ -95,16 +98,10 @@ class Driver(object):
         "Sets a single PWM channel"
         on = self._scale_value(on)
         off = self._scale_value(off)
-        self.i2c.write8(self.__LED0_ON_L+4*channel, on & 0xFF)
-        self.i2c.write8(self.__LED0_ON_H+4*channel, on >> 8)
-        self.i2c.write8(self.__LED0_OFF_L+4*channel, off & 0xFF)
-        self.i2c.write8(self.__LED0_OFF_H+4*channel, off >> 8)
+        self.i2c.writeList(self.__LED0_ON_L+4*channel, [on & 0xFF, on >> 8, off & 0xFF, off >> 8])
 
     def setAllPWM(self, on, off):
         "Sets a all PWM channels"
         on = self._scale_value(on)
         off = self._scale_value(off)
-        self.i2c.write8(self.__ALL_LED_ON_L, on & 0xFF)
-        self.i2c.write8(self.__ALL_LED_ON_H, on >> 8)
-        self.i2c.write8(self.__ALL_LED_OFF_L, off & 0xFF)
-        self.i2c.write8(self.__ALL_LED_OFF_H, off >> 8)
+        self.i2c.writeList(self.__ALL_LED_ON_L, [on & 0xFF, on >> 8, off & 0xFF, off >> 8])
