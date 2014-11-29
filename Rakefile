@@ -511,9 +511,7 @@ def define_task(scope, name, description, actions)
     end
 end
 
-def define_remote_task(dsl)
+RemoteTask.tasks.each do |dsl| 
     define_task(dsl.scope(:local).reverse, dsl.name, dsl.description(:local), dsl.local_task) if dsl.local_task
     define_task(dsl.scope(:remote).reverse, dsl.name, dsl.description(:remote), dsl.remote_task) if dsl.remote_task
 end
-
-RemoteTask.tasks.each { |dsl| define_remote_task dsl }
