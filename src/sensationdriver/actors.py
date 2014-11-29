@@ -101,7 +101,7 @@ class PrioritizedIntensity(object):
     def eval(self):
         if not self._values:
             return 0.0
-        return self._values.values()[len(self._values) - 1]
+        return self._values[self._values.iloc[- 1]]
 
     def top_priority(self):
         if not self._values:
