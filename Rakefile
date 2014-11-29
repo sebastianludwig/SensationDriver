@@ -319,7 +319,7 @@ namespace :remote do
                     puts "#{Time.now.strftime('%H:%M:%S')}: synced"
                     terminal_title "synced"
                     sleep(1)
-                    terminal_title "copy:watch"
+                    terminal_title "copy:watch - #{Time.now.strftime(':%M:%S')}"
                 end
                 fsevent.run
             ensure
