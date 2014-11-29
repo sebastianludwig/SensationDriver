@@ -1,4 +1,3 @@
-import logging
 import time
 import math
 from .wirebus import I2C
@@ -42,13 +41,11 @@ class Driver(object):
                 general_call = I2C(0x00, bus_number)
                 general_call.writeRaw8(0x06)            # SWRST
 
-    def __init__(self, address=0x40, busnum=-1, debug=False, logger=None):
-        self.logger = logger if logger is not None else logging.getLogger('root')
+    def __init__(self, address=0x40, busnum=-1, logger=None):
+        self.logger = logger
         self.i2c = I2C(address, busnum=busnum, logger=self.logger)
-        self.i2c.debug = debug
         self.address = address
-        self.debug = debug
-        if self.debug:
+        if self.logger is not None:
             self.logger.debug("Reseting PCA9685 MODE1 (without SLEEP) and MODE2")
         self.setAllPWM(0, 0)
         self.i2c.write8(self.__MODE2, self.__OUTDRV)
@@ -74,11 +71,11 @@ class Driver(object):
         prescaleval /= 4096.0       # 12-bit
         prescaleval /= float(freq)
         prescaleval -= 1.0
-        if self.debug:
+        if self.logger is not None:
             self.logger.debug("Setting PWM frequency to %d Hz", freq)
             self.logger.debug("Estimated pre-scale: %.2f", prescaleval)
         prescale = int(prescaleval + 0.5)
-        if self.debug:
+        if self.logger is not None:
             self.logger.debug("Final pre-scale: %d", prescale)
 
         oldmode = self.i2c.readU8(self.__MODE1)

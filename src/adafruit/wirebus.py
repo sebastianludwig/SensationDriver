@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import logging
 import os
 import mmap
 import time
@@ -83,8 +82,6 @@ class I2C(object):
 
     @classmethod
     def configurePinouts(cls, logger=None):
-        logger = logger if logger is not None else logging.getLogger('root')
-
         if cls._piRevision() < 2:
             raise RuntimeError("Raspberry Pi Rev 2 or greater required.")
 
@@ -109,7 +106,8 @@ class I2C(object):
         reg0_mask = 0b00000000000000000000111111111111 
         reg0_conf = 0b00000000000000000000100100000000
         if reg0 & reg0_mask != reg0_conf:
-            logger.info("register 0 configuration of I2C0 not correct. Updating.")
+            if logger is not None:
+                logger.info("register 0 configuration of I2C0 not correct. Updating.")
             reg0 = (reg0 & ~reg0_mask) | reg0_conf
             memory.seek(cls.__GPFSEL0)
             memory.write(reg0.to_bytes(4, byteorder='little'))
@@ -124,7 +122,8 @@ class I2C(object):
         reg2_mask = 0b00111111000000000000000000000000 
         reg2_conf = 0b00100100000000000000000000000000
         if reg2 & reg2_mask != reg2_conf:
-            logger.info("register 2 configuration of I2C0 not correct. Updating.")
+            if logger is not None:
+                logger.info("register 2 configuration of I2C0 not correct. Updating.")
             reg2 = (reg2 & ~reg2_mask) | reg2_conf
             memory.seek(cls.__GPFSEL2)
             memory.write(reg2.to_bytes(4, byteorder="little"))
@@ -161,15 +160,14 @@ class I2C(object):
         except IOError as err:
             return False
 
-    def __init__(self, address, busnum=-1, debug=False, logger=None):
-        self.logger = logger if logger is not None else logging.getLogger('root')
+    def __init__(self, address, busnum=-1, logger=None):
+        self.logger = logger
         self.address = address
         # By default, the correct I2C bus is auto-detected using /proc/cpuinfo
         # Alternatively, you can hard-code the bus version below:
         # self.bus = smbus.SMBus(0); # Force I2C0 (early 256MB Pi's)
         # self.bus = smbus.SMBus(1); # Force I2C1 (512MB Pi's)
         self.bus = smbus.SMBus(busnum if busnum >= 0 else I2C.defaultBusNumber())
-        self.debug = debug
 
     def reverseByteOrder(self, data):
         "Reverses the byte order of an int (16-bit) or long (32-bit) value"
@@ -182,14 +180,15 @@ class I2C(object):
         return val
 
     def errMsg(self):
-        self.logger.error("Error accessing 0x%02X: Check your I2C address", self.address)
+        if self.logger is not None:
+            self.logger.error("Error accessing 0x%02X: Check your I2C address", self.address)
         return -1
 
     def write8(self, reg, value):
         "Writes an 8-bit value to the specified register/address"
         try:
             self.bus.write_byte_data(self.address, reg, value)
-            if self.debug:
+            if self.logger is not None:
                 self.logger.debug("I2C: Wrote 0x%02X to register 0x%02X", value, reg)
         except IOError as err:
             return self.errMsg()
@@ -198,7 +197,7 @@ class I2C(object):
         "Writes a 16-bit value to the specified register/address pair"
         try:
             self.bus.write_word_data(self.address, reg, value)
-            if self.debug:
+            if self.logger is not None:
                 self.logger.debug("I2C: Wrote 0x%02X to register pair 0x%02X,0x%02X", value, reg, reg+1)
         except IOError as err:
             return self.errMsg()
@@ -207,7 +206,7 @@ class I2C(object):
         "Writes an 8-bit value on the bus"
         try:
             self.bus.write_byte(self.address, value)
-            if self.debug:
+            if self.logger is not None:
                 self.logger.debug("I2C: Wrote 0x%02X", value)
         except IOError as err:
             return self.errMsg()
@@ -215,7 +214,7 @@ class I2C(object):
     def writeList(self, reg, list):
         "Writes an array of bytes using I2C format"
         try:
-            if self.debug:
+            if self.logger is not None:
                 self.logger.debug("I2C: Writing list to register 0x%02X:\n%s", reg, list)
             self.bus.write_i2c_block_data(self.address, reg, list)
         except IOError as err:
@@ -225,7 +224,7 @@ class I2C(object):
         "Read a list of bytes from the I2C device"
         try:
             results = self.bus.read_i2c_block_data(self.address, reg, length)
-            if self.debug:
+            if self.logger is not None:
                 self.logger.debug("I2C: Device 0x%02X returned the following from reg 0x%02X:\n%s", self.address, reg, results)
             return results
         except IOError as err:
@@ -235,7 +234,7 @@ class I2C(object):
         "Read an unsigned byte from the I2C device"
         try:
             result = self.bus.read_byte_data(self.address, reg)
-            if self.debug:
+            if self.logger is not None:
                 self.logger.debug("I2C: Device 0x%02X returned 0x%02X from reg 0x%02X", self.address, result & 0xFF, reg)
             return result
         except IOError as err:
@@ -246,7 +245,7 @@ class I2C(object):
         try:
             result = self.bus.read_byte_data(self.address, reg)
             if result > 127: result -= 256
-            if self.debug:
+            if self.logger is not None:
                 self.logger.debug("I2C: Device 0x%02X returned 0x%02X from reg 0x%02X", self.address, result & 0xFF, reg)
             return result
         except IOError as err:
@@ -256,7 +255,7 @@ class I2C(object):
         "Reads an unsigned 16-bit value from the I2C device"
         try:
             result = self.bus.read_word_data(self.address,reg)
-            if (self.debug):
+            if self.logger is not None:
                 self.logger.debug("I2C: Device 0x%02X returned 0x%04X from reg 0x%02X", self.address, result & 0xFFFF, reg)
             return result
         except IOError as err:
@@ -266,7 +265,7 @@ class I2C(object):
         "Reads a signed 16-bit value from the I2C device"
         try:
             result = self.bus.read_word_data(self.address,reg)
-            if (self.debug):
+            if self.logger is not None:
                 self.logger.debug("I2C: Device 0x%02X returned 0x%04X from reg 0x%02X", self.address, result & 0xFFFF, reg)
             return result
         except IOError as err:

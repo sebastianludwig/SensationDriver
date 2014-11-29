@@ -1,4 +1,3 @@
-import logging
 import yaml
 import asyncio
 
@@ -36,7 +35,8 @@ class Vibration(pipeline.Element):
                 self.actors[region_index] = region_actors
                 self.processed_message_indices[region_index] = region_actor_indices
             except ValueError:
-                self.logger.error("Region with unknown name '%s' configured - ignoring region", region_name)
+                if self.logger is not None:
+                    self.logger.error("Region with unknown name '%s' configured - ignoring region", region_name)
                 continue
 
     def _set_up(self):
@@ -77,7 +77,8 @@ class Vibration(pipeline.Element):
         actor_index = vibration.actor_index
 
         if region not in self.actors or actor_index not in self.actors[region]:
-            self.logger.warning("No actor configured with index %d in region %s", actor_index, protocol.Vibration.Region.Name(region))
+            if self.logger is not None:
+                self.logger.warning("No actor configured with index %d in region %s", actor_index, protocol.Vibration.Region.Name(region))
             return False
 
         priority = vibration.priority
@@ -96,7 +97,7 @@ class Vibration(pipeline.Element):
 
 class Pattern(object):
     def __init__(self, inlet, loop=None, logger=None):
-        self.logger = logger if logger is not None else logging.getLogger('root')
+        self.logger = logger
         self._loop = loop if loop is not None else asyncio.get_event_loop()
 
         self.inlet = inlet
@@ -105,23 +106,27 @@ class Pattern(object):
 
     def load(self, indexed_pattern):
         pattern = indexed_pattern[1]
-        self.logger.info("loaded pattern %s", pattern.identifier)
+        if self.logger is not None:
+            self.logger.info("loaded pattern %s", pattern.identifier)
         self.patterns[pattern.identifier] = pattern.tracks
         return indexed_pattern
 
     @asyncio.coroutine
     def play(self, indexed_pattern):
         pattern = indexed_pattern[1]
-        self.logger.info("play pattern %s", pattern.identifier)
+        if self.logger is not None:
+            self.logger.info("play pattern %s", pattern.identifier)
         if not pattern.identifier in self.patterns:
-            self.logger.warning("Unknown pattern to play: %s", pattern.identifier)
+            if self.logger is not None:
+                self.logger.warning("Unknown pattern to play: %s", pattern.identifier)
             return pattern
 
         tracks = []
         for track in self.patterns[pattern.identifier]:
             tracks.append(Track(target_region=track.target_region, actor_index=track.actor_index, priority=pattern.priority, keyframes=track.keyframes))
 
-        self.logger.info("playing %d tracks", len(tracks))
+        if self.logger is not None:
+            self.logger.info("playing %d tracks", len(tracks))
         delta_time = 0
         while tracks:
             for track in tracks:
@@ -136,7 +141,8 @@ class Pattern(object):
             yield from self._sleep_for_sampling_interval()      # TODO: improve this: sample all tracks first, to have a consistent state, then yield for all of them - also measure the time needed to reduce sleeping time
             delta_time = self._loop.time() - sleep_start
 
-        self.logger.info("finished playing pattern %s", pattern.identifier)
+        if self.logger is not None:
+            self.logger.info("finished playing pattern %s", pattern.identifier)
 
         return indexed_pattern
 

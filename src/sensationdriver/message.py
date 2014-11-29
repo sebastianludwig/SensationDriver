@@ -22,7 +22,8 @@ class Logger(pipeline.Element):
 
     @asyncio.coroutine
     def _process(self, indexed_message):
-        self.logger.log(self.level, 'received:\n--\n%s--', indexed_message[1])
+        if self.logger is not None:
+            self.logger.log(self.level, 'received:\n--\n%s--', indexed_message[1])
 
         return indexed_message
 

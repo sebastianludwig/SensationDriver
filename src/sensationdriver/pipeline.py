@@ -1,4 +1,3 @@
-import logging
 import asyncio
 import traceback
 
@@ -8,7 +7,7 @@ class TerminateProcessing(Exception):
 
 class Element(object):
     def __init__(self, downstream=None, logger=None):
-        self.logger = logger if logger is not None else logging.getLogger('root')
+        self.logger = logger
         self.downstream = downstream
         self.profiler = None
 
@@ -126,7 +125,7 @@ class Parallelizer(Element):
 
         done, pending = yield from asyncio.wait(self._workers, loop=self._loop, timeout=2)
 
-        if pending:
+        if pending and self.logger is not None:
             self.logger.error("could not cancel processing of %d messages", len(pending))
 
         self._tearing_down = False
@@ -138,7 +137,8 @@ class Parallelizer(Element):
             if not (self._tearing_down and task.cancelled()) and task.exception():
                 ex = task.exception()
                 output = traceback.format_exception(ex.__class__, ex, ex.__traceback__)
-                self.logger.critical(''.join(output))
+                if self.logger is not None:
+                    self.logger.critical(''.join(output))
 
             self._workers.remove(task)
 

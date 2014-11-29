@@ -99,9 +99,10 @@ def main():
 
     try:
         with server:
-            up_and_running = "Server running with configuration %s (not critical, just to let you know..)" % mode
+            up_and_running = "Server running with configuration %s on interface '%s' (not critical, just to let you know..)" % (mode, ip)
             print(up_and_running)
-            logger.critical(up_and_running)
+            if logger is not None:
+                logger.critical(up_and_running)     # TODO find a better way to signal realdynessa
             loop.run_forever()
     finally:
         loop.close()

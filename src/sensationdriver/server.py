@@ -1,11 +1,10 @@
 import asyncio
-import logging
 import traceback
 
 
 class Server(object):
     def __init__(self, ip='', loop=None, logger=None):
-        self.logger = logger if logger is not None else logging.getLogger('root')
+        self.logger = logger
         self._loop = loop if loop is not None else asyncio.get_event_loop()
 
         self.ip = ip
@@ -37,7 +36,8 @@ class Server(object):
             if task.exception():
                 ex = task.exception()
                 output = traceback.format_exception(ex.__class__, ex, ex.__traceback__)
-                self.logger.critical(''.join(output))
+                if self.logger is not None:
+                    self.logger.critical(''.join(output))
 
             del self._clients[task]
 
@@ -54,7 +54,8 @@ class Server(object):
     @asyncio.coroutine
     def _handle_client(self, client_reader, client_writer):
         client_ip = self._client_ip(client_writer)
-        self.logger.info("connection from {0}".format(client_ip))
+        if self.logger is not None:
+            self.logger.info("connection from {0}".format(client_ip))
 
         # This could be written much shorter, but the Pi performance is very deficient. 
         # The used operations are chosen considerately.
@@ -67,7 +68,8 @@ class Server(object):
             while True:
                 new_data = yield from client_reader.read(4096)
                 if not new_data:
-                    self.logger.info('client %s disconnected', client_ip)
+                    if self.logger is not None:
+                        self.logger.info('client %s disconnected', client_ip)
                     break
 
                 new_data_length = len(new_data)
@@ -91,7 +93,8 @@ class Server(object):
                         break
 
         except asyncio.CancelledError:
-            self.logger.info('disconnecting client %s', client_ip)
+            if self.logger is not None:
+                self.logger.info('disconnecting client %s', client_ip)
             
 
     def __enter__(self):
@@ -103,7 +106,8 @@ class Server(object):
         future_server = asyncio.start_server(self._accept_client, self.ip, self.port, loop=self._loop)
         # wait until server socket is set up
         self._server = self._loop.run_until_complete(future_server)
-        self.logger.info('server started, listening on %s:%s', self.ip, self.port)
+        if self.logger is not None:
+            self.logger.info('server started, listening on %s:%s', self.ip, self.port)
 
         return self
 
@@ -125,11 +129,13 @@ class Server(object):
             if pending:
                 for task in pending:
                     client_writer = self._clients[task][1]
-                    self.logger.error("could not disconnect client %s", self._client_ip(client_writer))
+                    if self.logger is not None:
+                        self.logger.error("could not disconnect client %s", self._client_ip(client_writer))
 
         self._server.close()
         self._loop.run_until_complete(self._server.wait_closed())
         self._server = None
-        self.logger.info('server stopped')
+        if self.logger is not None:
+            self.logger.info('server stopped')
 
         return False

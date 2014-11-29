@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import time
 
 from sortedcontainers import SortedDict
@@ -26,7 +25,7 @@ def parse_config(config, logger=None):
             if not wirebus.I2C.isDeviceAnswering(address, i2c_bus_number):
                 return None
 
-            driver = pca9685.Driver(address, i2c_bus_number, debug=__debug__, logger=logger)
+            driver = pca9685.Driver(address, i2c_bus_number, logger=logger)
             drivers[address] = driver
         return drivers[address]
 
@@ -46,7 +45,8 @@ def parse_config(config, logger=None):
         driver = driver_for_address(drivers, dirver_address, region_config['i2c_bus_number'])
 
         if driver is None:
-            logger.error("No driver found for at address 0x%02X on I2C bus %d for region %s - ignoring region", dirver_address, region_config['i2c_bus_number'], region_config['name'])
+            if logger is not None:
+                logger.error("No driver found for at address 0x%02X on I2C bus %d for region %s - ignoring region", dirver_address, region_config['i2c_bus_number'], region_config['name'])
             continue
 
         if region_config['name'] not in regions:
@@ -60,7 +60,8 @@ def parse_config(config, logger=None):
         region_actors = regions[region_config['name']]
         for actor_config in region_config['actors']:
             if actor_config['index'] in region_actors:
-                logger.error("Multiple actors configured with index %d in region %s - ignoring subsequent definitions", actor_config['index'], region_config['name'])
+                if logger is not None:
+                    logger.error("Multiple actors configured with index %d in region %s - ignoring subsequent definitions", actor_config['index'], region_config['name'])
                 continue
             else:
                 vibration_motor = VibrationMotor(driver=driver, outlet=actor_config['outlet'], index_in_region=actor_config['index'], position=actor_config['position'], logger=logger)
@@ -120,7 +121,7 @@ class VibrationMotor(object):
         self.outlet = outlet
         self.index_in_region = index_in_region
         self.position = position
-        self.logger = logger if logger is not None else logging.getLogger('root')
+        self.logger = logger
         self.profiler = None
 
         self.mapping_curve_degree = 1.5       # degree of the function used to map intensity values from [0, 1] to the supported motor range. Use '2' for square, '3' for cubic and so on. No matter which degree, it is ensured an intensity of 0 is always off and an intensity of 1 always equals full motor intensity. Only supports positive values.
@@ -163,7 +164,8 @@ class VibrationMotor(object):
     def _current_intensity(self, value):
         if abs(value - self.__current_intensity) < self._SENSITIVITY:
             return
-        self.logger.debug("setting %s to %.3f", self.position, value)
+        if self.logger is not None:
+            self.logger.debug("setting %s to %.3f", self.position, value)
         self.__current_intensity = value
         
         self._profile("set_pwm", self.index_in_region, self.__current_intensity)

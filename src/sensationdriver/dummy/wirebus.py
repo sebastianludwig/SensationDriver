@@ -21,5 +21,5 @@ class I2C(object):
         return True
 
 
-    def __init__(self, address, busnum=-1, debug=False, logger=None):
+    def __init__(self, address, busnum=-1, logger=None):
         pass
