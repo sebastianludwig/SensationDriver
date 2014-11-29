@@ -18,7 +18,7 @@ class Vibration(pipeline.Element):
         self.drivers = self._actor_config['drivers']
         for driver in self.drivers:
             # TODO use ALLCALL address to set PWM frequency
-            driver.setPWMFreq(1700)                        # Set max frequency to (~1,6kHz) # TODO test different frequencies
+            driver.setPWMFreq(1200)                        # Set frequency to a little above 1133 Hz, to get near linear motor control
 
 
         self.actors = {}
