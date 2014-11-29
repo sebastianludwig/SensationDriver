@@ -133,7 +133,7 @@ class Pattern(object):
 
             tracks = [t for t in tracks if not t.is_finished]
             sleep_start = self._loop.time()
-            yield from self._sleep_for_sampling_interval()
+            yield from self._sleep_for_sampling_interval()      # TODO: improve this: sample all tracks first, to have a consistent state, then yield for all of them - also measure the time needed to reduce sleeping time
             delta_time = self._loop.time() - sleep_start
 
         self.logger.info("finished playing pattern %s", pattern.identifier)
