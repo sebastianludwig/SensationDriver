@@ -1,5 +1,7 @@
 #!/usr/bin/env python3.4
 
+import cProfile
+
 import logging
 import logging.config
 import yaml
@@ -116,4 +118,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # cprofile_path = project.relative_path('log', "c_profile_{:%Y%m%d_%H%M}.prof".format(datetime.datetime.now()))
+    # cProfile.run('main()', cprofile_path)
 
