@@ -61,8 +61,6 @@ def main():
 
     sys.excepthook = functools.partial(excepthook, logger)
 
-    if not __debug__:
-        logger = None
 
     wirebus.I2C.configurePinouts(logger)
     pca9685.Driver.softwareReset()
