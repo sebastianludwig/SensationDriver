@@ -12,7 +12,7 @@ else:
     from .dummy import pca9685
     from .dummy import wirebus
 
-def parse_config(config, logger=None):
+def parse_config(config, loop=None, logger=None):
     # { 
     #     "drivers": [<Driver>],
     #     "regions": {
@@ -28,6 +28,8 @@ def parse_config(config, logger=None):
             driver = pca9685.Driver(address, i2c_bus_number, logger=logger)
             drivers[address] = driver
         return drivers[address]
+
+    loop = loop if loop is not None else asyncio.get_event_loop()
 
     vibration_config = config['vibration']
     global_actor_mapping_curve_degree = vibration_config.get('actor_mapping_curve_degree', None)
@@ -64,7 +66,7 @@ def parse_config(config, logger=None):
                     logger.error("Multiple actors configured with index %d in region %s - ignoring subsequent definitions", actor_config['index'], region_config['name'])
                 continue
             else:
-                vibration_motor = VibrationMotor(driver=driver, outlet=actor_config['outlet'], index_in_region=actor_config['index'], position=actor_config['position'], logger=logger)
+                vibration_motor = VibrationMotor(driver=driver, outlet=actor_config['outlet'], index_in_region=actor_config['index'], position=actor_config['position'], loop=loop, logger=logger)
 
                 mapping_curve_degree = actor_config.get('mapping_curve_degree', region_actor_mapping_curve_degree)
                 min_intensity = actor_config.get('min_intensity', region_actor_min_intensity)
@@ -116,7 +118,8 @@ class PrioritizedIntensity(object):
 class VibrationMotor(object):
     _SENSITIVITY = 0.005                    # ignore any changes below the this value and treat values below as "motor off"
 
-    def __init__(self, driver, outlet, index_in_region, position=None, logger=None):
+    def __init__(self, driver, outlet, index_in_region, position=None, loop=None, logger=None):
+        self._loop = loop if loop is not None else asyncio.get_event_loop()
         self.driver = driver
         self.outlet = outlet
         self.index_in_region = index_in_region
@@ -195,12 +198,18 @@ class VibrationMotor(object):
             self._profile("set_intensity", self.index_in_region, intensity, priority, self._target_intensity, 'direct')
 
             self._current_intensity = self._target_intensity
+            future = asyncio.Future()
+            future.set_result(self._target_intensity)
+            return future
         else:
-            if self._current_intensity < self.min_intensity:
-                self._current_intensity = self.min_instant_intensity
-            delay = self.min_intensity_warmup - self._running_time()
+            self._profile("set_intensity", self.index_in_region, intensity, priority, self._target_intensity, 'delayed')
+            return asyncio.Task(self.set_intensity_delayed(), loop=self._loop)
 
-            self._profile("set_intensity", self.index_in_region, intensity, priority, self._target_intensity, 'delayed', delay)
+    @asyncio.coroutine
+    def set_intensity_delayed(self):
+        if self._current_intensity < self.min_intensity:
+            self._current_intensity = self.min_instant_intensity
+        delay = self.min_intensity_warmup - self._running_time()        
 
-            yield from asyncio.sleep(delay)
-            self._current_intensity = self._target_intensity
+        yield from asyncio.sleep(delay)
+        self._current_intensity = self._target_intensity

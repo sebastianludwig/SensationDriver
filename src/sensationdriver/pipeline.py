@@ -1,9 +1,13 @@
+import logging
 import asyncio
 import traceback
+import collections
+import time
 
 
 class TerminateProcessing(Exception):
     pass
+
 
 class Element(object):
     def __init__(self, downstream=None, logger=None):
@@ -64,8 +68,22 @@ class Element(object):
             self._tear_down()
 
     @asyncio.coroutine
-    def _process(self, data):
+    def _process_single(self, data):
         return data
+
+    @asyncio.coroutine
+    def _process(self, data):
+        result = []
+        for element in data:
+            try:
+                mapped = yield from self._process_single(element)
+
+                assert mapped is not None, "pipeline element '{0}' single element processing result must not be None".format(self.__class__.__name__)
+
+                result.append(mapped)
+            except TerminateProcessing:
+                pass
+        return result
 
     @asyncio.coroutine
     def process(self, data):
@@ -73,6 +91,7 @@ class Element(object):
             result = yield from self._process(data)
 
             assert result is not None, "pipeline element '{0}' processing result must not be None".format(self.__class__.__name__)
+            assert isinstance(result, collections.Iterable), "pipeline element '{0}' processing must return an iterable".format(self.__class__.__name__)
 
             for successor in self._successors():
                 yield from successor.process(result)
@@ -80,28 +99,82 @@ class Element(object):
             pass
 
 
-class Numerator(Element):
-    def __init__(self, downstream=None, logger=None):
+class Noop(Element):
+    pass
+
+
+class Counter(Element):
+    def __init__(self, limit, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)
-        self._index = -1
+        self.limit = limit
+        self.counter = 0
+        self.start = None
 
     @asyncio.coroutine
-    def _process(self, data):
-        self._index += 1
-        return (self._index, data)
+    def _process_single(self, message):
+        if self.start is None:
+            self.start = time.time()
+
+        self.counter += 1
+
+        if self.counter == self.limit:
+            duration = (time.time() - self.start) * 1000
+            if self.logger:
+                self.logger.info("received %d messages in %.0f ms" % (self.counter, duration))
+            self.counter = 0
+            self.start = None
+
+        return message
+
+
+class Logger(Element):
+    def __init__(self, downstream=None, logger=None):
+        super().__init__(downstream=downstream, logger=logger)
+        self.level = logging.INFO
+
+    @asyncio.coroutine
+    def _process_single(self, message):
+        if self.logger is not None:
+            self.logger.log(self.level, 'received:\n--\n%s--', message)
+
+        return message
 
 
 class Dispatcher(Element):
     def __init__(self, target, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)
         self.target = target
+        self.coroutine_target = asyncio.iscoroutinefunction(target)
 
     @asyncio.coroutine
-    def _process(self, data):
+    def _process_single(self, data):
         result = self.target(data)
-        if asyncio.iscoroutine(result):
-            yield from result
+        if self.coroutine_target:
+            result = yield from result
         return result
+
+
+class Numerator(Element):
+    def __init__(self, downstream=None, logger=None):
+        self._index = -1
+
+    @asyncio.coroutine
+    def _process_single(self, element):
+        self._index += 1        
+        return (self._index, element)
+
+
+class Serializer(Element):
+    def __init__(self, downstream=None, logger=None):
+        super().__init__(downstream=downstream, logger=logger)
+        self.super_process = super().process
+
+    @asyncio.coroutine
+    def _process(self, elements):
+        super_process = self.super_process
+        for element in elements:
+            yield from super_process(message)
+        raise TerminateProcessing()
 
 
 class Parallelizer(Element):
@@ -132,7 +205,7 @@ class Parallelizer(Element):
 
 
     @asyncio.coroutine
-    def process(self, data):
+    def _process_single(self, data):
         def worker_finished(task):
             if not (self._tearing_down and task.cancelled()) and task.exception():
                 ex = task.exception()
@@ -148,3 +221,10 @@ class Parallelizer(Element):
             worker = asyncio.Task(successor.process(data), loop=self._loop)
             worker.add_done_callback(worker_finished)
             self._workers.add(worker)
+        
+        return data
+
+    @asyncio.coroutine
+    def _process(self, data):
+        yield from super()._process(data)
+        raise TerminateProcessing()

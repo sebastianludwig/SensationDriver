@@ -21,19 +21,15 @@ class Vibration(pipeline.Element):
 
 
         self.actors = {}
-        self.processed_message_indices = {}
         for region_name, actors in self._actor_config['regions'].items():
             try:
                 region_index = protocol.Vibration.Region.Value(region_name)
 
                 region_actors = {}
-                region_actor_indices = {}
                 for actor in actors:
                     region_actors[actor.index_in_region] = actor
-                    region_actor_indices[actor.index_in_region] = {}
                 
                 self.actors[region_index] = region_actors
-                self.processed_message_indices[region_index] = region_actor_indices
             except ValueError:
                 if self.logger is not None:
                     self.logger.error("Region with unknown name '%s' configured - ignoring region", region_name)
@@ -44,7 +40,7 @@ class Vibration(pipeline.Element):
 
         for driver in self.drivers:
             driver.setAllPWM(0, 0)
-        # TODO reset all actors
+        # TODO reset all actor objects to match the driver value
 
         if self.profiler is not None:
             for region_index, region_actors in self.actors.items():
@@ -56,43 +52,22 @@ class Vibration(pipeline.Element):
             driver.setAllPWM(0, 0)
 
     @asyncio.coroutine
-    def _process(self, indexed_vibration):
-        message_index = indexed_vibration[0]
-        vibration = indexed_vibration[1]
-
+    def _process_single(self, vibration):
         self._profile("process", vibration)
 
-        if not self._should_process_message(message_index, vibration):
-            return indexed_vibration
-        self._save_processed_message_index(message_index, vibration)
-
-        actor = self.actors[vibration.target_region][vibration.actor_index]
-        
-        yield from actor.set_intensity(vibration.intensity, vibration.priority)
-
-        return indexed_vibration
-
-    def _should_process_message(self, message_index, vibration):
         region = vibration.target_region
         actor_index = vibration.actor_index
 
         if region not in self.actors or actor_index not in self.actors[region]:
             if self.logger is not None:
                 self.logger.warning("No actor configured with index %d in region %s", actor_index, protocol.Vibration.Region.Name(region))
-            return False
+            return vibration
 
-        priority = vibration.priority
-        if priority in self.processed_message_indices[region][actor_index]:
-            return message_index > self.processed_message_indices[region][actor_index][priority]
-        else:
-            return True
+        actor = self.actors[vibration.target_region][vibration.actor_index]
+        
+        yield from actor.set_intensity(vibration.intensity, vibration.priority)
 
-    def _save_processed_message_index(self, message_index, vibration):
-        region = vibration.target_region
-        actor_index = vibration.actor_index
-        priority = vibration.priority
-
-        self.processed_message_indices[region][actor_index][priority] = message_index
+        return vibration
 
 
 class Pattern(object):
@@ -104,16 +79,13 @@ class Pattern(object):
         self.patterns = {}      # identifier -> [Tracks]
         self.samling_frequency = 10
 
-    def load(self, indexed_pattern):
-        pattern = indexed_pattern[1]
+    def load(self, pattern):
         if self.logger is not None:
             self.logger.info("loaded pattern %s", pattern.identifier)
         self.patterns[pattern.identifier] = pattern.tracks
-        return indexed_pattern
+        return pattern
 
-    @asyncio.coroutine
-    def play(self, indexed_pattern):
-        pattern = indexed_pattern[1]
+    def play(self, pattern):
         if self.logger is not None:
             self.logger.info("play pattern %s", pattern.identifier)
         if not pattern.identifier in self.patterns:
@@ -125,26 +97,30 @@ class Pattern(object):
         for track in self.patterns[pattern.identifier]:
             tracks.append(Track(target_region=track.target_region, actor_index=track.actor_index, priority=pattern.priority, keyframes=track.keyframes))
 
+        return asyncio.Task(self._sample_tracks(tracks), loop=self._loop)
+
+    @asyncio.coroutine    
+    def _sample_tracks(self, tracks):
         if self.logger is not None:
             self.logger.info("playing %d tracks", len(tracks))
         delta_time = 0
+        loop = self._loop
         while tracks:
+            messages = []
             for track in tracks:
                 track.advance(delta_time)
 
-                message = track.create_message()
+                messages.append(track.create_message())
 
-                yield from self.inlet.process(message)
+            yield from self.inlet.process(messages)
 
             tracks = [t for t in tracks if not t.is_finished]
-            sleep_start = self._loop.time()
-            yield from self._sleep_for_sampling_interval()      # TODO: improve this: sample all tracks first, to have a consistent state, then yield for all of them - also measure the time needed to reduce sleeping time
-            delta_time = self._loop.time() - sleep_start
+            sleep_start = loop.time()
+            yield from self._sleep_for_sampling_interval()      # TODO: improve this: measure the time needed to reduce sleeping time
+            delta_time = loop.time() - sleep_start
 
         if self.logger is not None:
             self.logger.info("finished playing pattern %s", pattern.identifier)
-
-        return indexed_pattern
 
     @asyncio.coroutine
     def _sleep_for_sampling_interval(self):

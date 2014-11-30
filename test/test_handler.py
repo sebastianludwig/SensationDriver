@@ -47,51 +47,10 @@ class TestVibration(AsyncTestCase):
         vibration_handler = Vibration(self.actor_config)
         yield from vibration_handler.set_up()
 
-        yield from vibration_handler.process((42, self.vibration_message(3, 1)))
+        yield from vibration_handler.process([self.vibration_message(3, 1)])
 
         self.assertAlmostEqual(self.actor_three.intensity, 1)
 
-    @async_test
-    def test_lower_index_message_is_ignored(self):
-        vibration_handler = Vibration(self.actor_config)
-        yield from vibration_handler.set_up()
-
-        yield from vibration_handler.process((42, self.vibration_message(3, 1)))
-        yield from vibration_handler.process((41, self.vibration_message(3, 0.5)))
-
-        self.assertAlmostEqual(self.actor_three.intensity, 1)
-
-    @async_test
-    def test_higher_index_message_is_processed(self):
-        vibration_handler = Vibration(self.actor_config)
-        yield from vibration_handler.set_up()
-
-        yield from vibration_handler.process((42, self.vibration_message(3, 1)))
-        yield from vibration_handler.process((43, self.vibration_message(3, 0.5)))
-
-        self.assertAlmostEqual(self.actor_three.intensity, 0.5)
-
-    @async_test
-    def test_lower_index_message_for_different_actor_is_processed(self):
-        vibration_handler = Vibration(self.actor_config)
-        yield from vibration_handler.set_up()
-
-        yield from vibration_handler.process((42, self.vibration_message(3, 1)))
-        yield from vibration_handler.process((41, self.vibration_message(4, 0.5)))
-
-        self.assertAlmostEqual(self.actor_three.intensity, 1)
-        self.assertAlmostEqual(self.actor_four.intensity, 0.5)
-
-    @async_test
-    def test_lower_index_message_with_different_priority_is_processed(self):
-        vibration_handler = Vibration(self.actor_config)
-        yield from vibration_handler.set_up()
-
-        yield from vibration_handler.process((40, self.vibration_message(3, 0.8, 80)))
-        yield from vibration_handler.process((42, self.vibration_message(3, 1)))
-        yield from vibration_handler.process((41, self.vibration_message(3, 0.5, 80)))
-
-        self.assertAlmostEqual(self.actor_three.intensity, 0.5)
 
 
 if __name__ == '__main__':

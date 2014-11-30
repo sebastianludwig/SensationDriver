@@ -7,7 +7,7 @@ from sensationdriver.pipeline import Dispatcher
 from sensationdriver.pipeline import Parallelizer
 from sensationdriver.pipeline import TerminateProcessing
 
-class MemoryElement(Element):
+class IncrementElement(Element):
     def __init__(self, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)
         self.process_called_counter = 0
@@ -22,7 +22,7 @@ class MemoryElement(Element):
         self.tear_down_called_counter += 1
 
     @asyncio.coroutine
-    def _process(self, number):
+    def _process_single(self, number):
         self.process_called_counter += 1
         self.processed_number = number
         return number + 1
@@ -58,10 +58,10 @@ class TestElement(AsyncTestCase):
 
     @async_test
     def test_set_up_propagates(self):
-        first = MemoryElement()
-        second = MemoryElement()
-        third = MemoryElement()
-        fourth = MemoryElement()
+        first = IncrementElement()
+        second = IncrementElement()
+        third = IncrementElement()
+        fourth = IncrementElement()
 
         chain = first >> second >> third >> fourth
         yield from chain.set_up()
@@ -71,10 +71,10 @@ class TestElement(AsyncTestCase):
 
     @async_test
     def test_tear_down_propagates(self):
-        first = MemoryElement()
-        second = MemoryElement()
-        third = MemoryElement()
-        fourth = MemoryElement()
+        first = IncrementElement()
+        second = IncrementElement()
+        third = IncrementElement()
+        fourth = IncrementElement()
 
         chain = first >> second >> third >> fourth
         yield from chain.tear_down()
@@ -84,13 +84,13 @@ class TestElement(AsyncTestCase):
 
     @async_test
     def test_process_propagates(self):
-        first = MemoryElement()
-        second = MemoryElement()
-        third = MemoryElement()
-        fourth = MemoryElement()
+        first = IncrementElement()
+        second = IncrementElement()
+        third = IncrementElement()
+        fourth = IncrementElement()
 
         chain = first >> second >> third >> fourth
-        self.run_async(chain.process(42))
+        self.run_async(chain.process([42]))
 
         yield from self.wait_for_async()
 
@@ -98,17 +98,18 @@ class TestElement(AsyncTestCase):
             self.assertEqual(element.process_called_counter, 1)
         self.assertEqual(fourth.processed_number, 45)
 
+    @async_test
     def test_multiplexing(self):
-        first = MemoryElement()
-        a1 = MemoryElement()
-        a2 = MemoryElement()
-        b1 = MemoryElement()
-        b2 = MemoryElement()
+        first = IncrementElement()
+        a1 = IncrementElement()
+        a2 = IncrementElement()
+        b1 = IncrementElement()
+        b2 = IncrementElement()
 
         chain = first >> [a1 >> a2,
                           b1 >> b2]
 
-        self.run_async(chain.process(1))
+        self.run_async(chain.process([1]))
 
         yield from self.wait_for_async()
 
@@ -117,8 +118,41 @@ class TestElement(AsyncTestCase):
             self.assertEqual(element.process_called_counter, 1)
             i += 1
         self.assertEqual(i, 5)
-        self.assertEqual(a2.processed_number, 2)
-        self.assertEqual(b2.processed_number, 2)
+        self.assertEqual(a2.processed_number, 3)
+        self.assertEqual(b2.processed_number, 3)
+
+    @async_test
+    def test_process_call_process_single_for_every_element(self):
+        element = IncrementElement()
+
+        self.run_async(element.process([1, 2, 3, 4]))
+
+        yield from self.wait_for_async()
+
+        self.assertEqual(element.process_called_counter, 4)
+
+    @async_test
+    def test_process_returns_results_of_process_single(self):
+        class MemoryElement(Element):
+            def __init__(self, downstream=None, logger=None):
+                super().__init__(downstream=downstream, logger=logger)
+                self.process_argument = None
+
+            @asyncio.coroutine
+            def _process(self, data):
+                self.process_argument = data
+                return data
+
+        memory_element = MemoryElement()
+        chain = IncrementElement() >> memory_element
+
+        self.run_async(chain.process([1, 2, 3, 4]))
+
+        yield from self.wait_for_async()
+
+        self.assertEqual(len(memory_element.process_argument), 4)
+        self.assertEqual(memory_element.process_argument[0], 2)
+        self.assertEqual(memory_element.process_argument[3], 5)
 
     @async_test
     def test_process_must_not_return_none(self):
@@ -134,25 +168,83 @@ class TestElement(AsyncTestCase):
         chain = first >> second >> third
 
         with self.assertRaises(AssertionError):
-            self.run_async(chain.process(1))
+            self.run_async(chain.process([1]))
 
             yield from self.wait_for_async()
 
     @async_test
-    def test_terminate_prcessing(self):
-        class TerminalElement(MemoryElement):
+    def test_process_single_must_not_return_none(self):
+        class NoneElement(Element):
+            @asyncio.coroutine
+            def _process_single(self, number):
+                return None
+
+        first = Element()
+        second = NoneElement()
+        third = Element()
+
+        chain = first >> second >> third
+
+        with self.assertRaises(AssertionError):
+            self.run_async(chain.process([1]))
+
+            yield from self.wait_for_async()
+
+    @async_test
+    def test_process_must_return_iterable(self):
+        class NotIterable(Element):
+            @asyncio.coroutine
+            def _process(self, number):
+                return 9
+
+        first = Element()
+        second = NotIterable()
+        third = Element()
+
+        chain = first >> second >> third
+
+        with self.assertRaises(AssertionError):
+            self.run_async(chain.process([1]))
+
+            yield from self.wait_for_async()
+
+    @async_test
+    def test_process_terminate_prcessing(self):
+        class TerminalElement(IncrementElement):
             @asyncio.coroutine
             def _process(self, number):
                 yield from super()._process(number)
                 raise TerminateProcessing
                 return number
 
-        first = MemoryElement()
+        first = IncrementElement()
         second = TerminalElement()
-        third = MemoryElement()
+        third = IncrementElement()
 
         chain = first >> second >> third
-        self.run_async(chain.process(42))
+        self.run_async(chain.process([42]))
+
+        yield from self.wait_for_async()
+
+        self.assertEqual(first.process_called_counter, 1)
+        self.assertEqual(second.process_called_counter, 1)
+        self.assertEqual(third.process_called_counter, 0)
+
+    @async_test
+    def test_process_single_terminate_prcessing(self):
+        class TerminalElement(IncrementElement):
+            @asyncio.coroutine
+            def _process_single(self, number):
+                yield from super()._process_single(number)
+                raise TerminateProcessing
+                return number
+
+        first = IncrementElement()
+        second = TerminalElement()
+        third = IncrementElement()
+
+        chain = first >> second >> third
+        self.run_async(chain.process([42]))
 
         yield from self.wait_for_async()
 
@@ -177,13 +269,13 @@ class TestDispatcher(AsyncTestCase):
 
     @async_test
     def test_dispatching(self):
-        first = MemoryElement()
+        first = IncrementElement()
         second = Dispatcher(self.two_times.calc)
-        third = MemoryElement()
+        third = IncrementElement()
 
         chain = first >> second >> third
 
-        self.run_async(chain.process(2))
+        self.run_async(chain.process([2]))
 
         yield from self.wait_for_async()
 
@@ -212,8 +304,8 @@ class TestParallelizer(AsyncTestCase):
         parallelizer = Parallelizer()
         chain = parallelizer >> recorder
 
-        yield from chain.process(1)
-        yield from chain.process(2)
+        yield from chain.process([1])
+        yield from chain.process([2])
 
         yield from asyncio.wait(parallelizer._workers, loop=self.loop, timeout=2)
 
@@ -227,7 +319,7 @@ class TestParallelizer(AsyncTestCase):
         parallelizer = Parallelizer()
         chain = parallelizer >> [recorder1, recorder2]
 
-        yield from chain.process(4)
+        yield from chain.process([4])
 
         yield from asyncio.wait(parallelizer._workers, loop=self.loop, timeout=2)
 
@@ -240,7 +332,7 @@ class TestParallelizer(AsyncTestCase):
         parallelizer = Parallelizer()
         chain = parallelizer >> recorder
 
-        yield from chain.process(1)
+        yield from chain.process([1])
         start = time.time()
         yield from chain.tear_down()
         duration = time.time() - start
@@ -262,7 +354,7 @@ class TestParallelizer(AsyncTestCase):
         parallelizer = Parallelizer(logger=logger)
         chain = parallelizer >> ExceptionElement()
 
-        yield from chain.process(1)
+        yield from chain.process([1])
 
         yield from asyncio.wait(parallelizer._workers, loop=self.loop, timeout=2)
 

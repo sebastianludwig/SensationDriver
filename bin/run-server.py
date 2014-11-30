@@ -76,17 +76,17 @@ def main():
 
 
     with open(project.relative_path('conf', 'actor_conf.json')) as f:
-        actor_config = actors.parse_config(yaml.load(f), logger=logger)
+        actor_config = actors.parse_config(yaml.load(f), loop=loop, logger=logger)
 
 
     server = sensationdriver.Server(ip=ip, loop=loop, logger=logger)
 
-    numerator = pipeline.Numerator()
-    patter_handler = handler.Pattern(inlet=numerator, logger=logger)
+    inlet = pipeline.Noop()
+    patter_handler = handler.Pattern(inlet=inlet, loop=loop, logger=logger)
 
-    server.handler = message.Parser() #>> numerator >> pipeline.Parallelizer(loop=loop) >> message.Logger() >> [message.TypeFilter(protocol.Message.VIBRATION) >> handler.Vibration(actor_config),
-                                      #                                                                          message.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
-                                      #                                                                          message.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
+    server.handler = message.Splitter() >> message.Parser() >> inlet >> [message.TypeFilter(protocol.Message.VIBRATION) >> pipeline.Counter(5000) >> message.DeprecatedFilter() >> handler.Vibration(actor_config),
+                                                                           message.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
+                                                                           message.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
     
     for element in server.handler:
         element.logger = logger

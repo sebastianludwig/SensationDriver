@@ -55,6 +55,7 @@ class AsyncTestCase(unittest.TestCase):
     def run_async(self, coro):
         task = asyncio.Task(coro)
         self._tasks.append(task)
+        return task
 
     @asyncio.coroutine
     def wait_for_async(self):
