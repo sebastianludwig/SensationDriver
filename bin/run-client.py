@@ -8,7 +8,6 @@ import random
 
 sys.path.append(project.relative_path('src'))
 
-
 import sensationdriver
 from sensationdriver import protocol
 
@@ -89,7 +88,8 @@ else:                       # interactive mode
     print("test all:        `test_all`                   short: `ta`")
     print("manual test:     `test_manual`                short: `tm`")
     print()
-    print("profiling:       `profile`")
+    print("profiling:       `profile`                    short: `pro`")
+    print("profiling cont.: `profile_cont`               short: `proc`")
     print()
     print("reconnect:       `reconnect`")
     print()
@@ -160,19 +160,38 @@ else:                       # interactive mode
                         start = not start
                     send(client, region, test_actor, priority, 0)
                     print("Manual test stopped.")
-                elif line == "profile":
-                    for _ in range(0, 1):
-                        number_of_messages = 5000
-                        counter = 0
-                        start = time.time() * 1000
-                        for i in range(0, number_of_messages - 5):
+                elif line == "profile" or line == "pro":
+                    random.seed(42)
+                    number_of_messages = 5000
+                    counter = 0
+                    start = time.time() * 1000
+                    for i in range(0, number_of_messages - 5):
+                        counter += 1
+                        send(client, random.randint(0, 1), random.randint(0, 11), priority, random.random(), True)
+                    for i in range(0, 5):
+                        counter += 1
+                        send(client, region, i, priority, 0, True)
+                    end = time.time() * 1000
+                    print("Finished sending %d messages: %.0f ms" % (counter, end - start))
+                elif line == "profile_cont" or line == "proc":
+                    random.seed(42)
+                    counter = 0
+                    start = time.time()
+                    try:
+                        while True:
                             counter += 1
-                            send(client, region, int(random.random() * 5), priority, random.random(), True)
+                            send(client, random.randint(0, 1), random.randint(0, 11), priority, random.random(), True)
+                            if counter % 5000 == 0:
+                                duration = time.time() - start
+                                print("Sent %d messages in %.0f ms" % (counter, duration * 1000))
+                                time.sleep(5)
+                                counter = 0
+                                start = time.time()
+                    except KeyboardInterrupt:
+                        print("\nStopped")
+                    finally:
                         for i in range(0, 5):
-                            counter += 1
                             send(client, region, i, priority, 0, True)
-                        end = time.time() * 1000
-                        print("Finished sending %d messages: %.0f ms" % (counter, end - start))
                 elif line == "reconnect":
                     client.reconnect()
                 else:
