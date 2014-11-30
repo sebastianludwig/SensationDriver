@@ -26,18 +26,18 @@ end
 
 PATTERNS = {
     # probe;1416835751492;3;0
-    probe: /(?<time>\d{13});(?<actor>\d+);(?<intensity>[\d\.]+)/,
+    probe: /(?<time>[\d\.]+);(?<actor>\d+);(?<intensity>[\d\.]+)/,
     # send;1416835751495;{ Message: Type = Vibration; Vibration = { Vibration: TargetRegion = Chest; ActorIndex = 3; Intensity = 0; Priority = 0; }; MuscleStimulation = null; LoadPattern = null; PlayPattern = null; }
-    send: /(?<time>\d{13}).+ActorIndex = (?<actor>\d+); Intensity = (?<intensity>[\d\.]+)/,
+    send: /(?<time>[\d\.]+);.*ActorIndex = (?<actor>\d+); Intensity = (?<intensity>[\d\.]+)/,
     # parse;1416835753996;type: VIBRATION;vibration {;  target_region: CHEST;  actor_index: 3;  intensity: 0.9011609554290771;  priority: 0;};
-    parse: /(?<time>\d{13}).+actor_index: (?<actor>\d+);\s*intensity: (?<intensity>[\d\.]+)/,
+    parse: /(?<time>[\d\.]+);.*actor_index: (?<actor>\d+);\s*intensity: (?<intensity>[\d\.]+)/,
     # process;1416835753981;target_region: BACK;actor_index: 11;intensity: 0.007905662059783936;priority: 0;
-    process: /(?<time>\d{13}).+actor_index: (?<actor>\d+);\s*intensity: (?<intensity>[\d\.]+)/,
+    process: /(?<time>[\d\.]+);.*actor_index: (?<actor>\d+);\s*intensity: (?<intensity>[\d\.]+)/,
     # set_pwm;1416835753981;11;0.5
-    set_pwm: /(?<time>\d{13});(?<actor>\d+);(?<intensity>[\d\.]+)/,
+    set_pwm: /(?<time>[\d\.]+);(?<actor>\d+);(?<intensity>[\d\.]+)/,
     # set_intensity;1416835753981;3;0.9039502143859863;0;0.9016096698202323;direct
-    # set_intensity;1416835753981;11;0.007905662059783936;0;0.30049204566357335;delayed;0.2
-    set_intensity: /(?<time>\d{13});(?<actor>\d+);(?<intensity>[-\d\.e]+);(?<priority>[\d\.]+);(?<target_intensity>[\d\.]+);(?<mode>[a-z]+)(;(?<delay>[\d\.]+))?/
+    # set_intensity;1416835753981;11;0.007905662059783936;0;0.30049204566357335;delayed
+    set_intensity: /(?<time>[\d\.]+);(?<actor>\d+);(?<intensity>[-\d\.e]+);(?<priority>[\d\.]+);(?<target_intensity>[\d\.]+);(?<mode>[a-z]+)(;(?<delay>[\d\.]+))?/
 }
 
 def reverse_map_intensity(intensity)
@@ -83,8 +83,10 @@ end
 #------------------------------------------
 puts "This script calulates with \nmotor_min_intensity = #{MOTOR_MIN_INTENSITY}\nmapping_curve_degree = #{MAPPING_CURVE_DEGREE}\nIf these are not the values your motors are running on, change them in the script.\n\n"
 
+server_file_path = select_file('server', 'sensation_server_profile*')
+
 commands = parse_file select_file('client', 'sensation_profile*')
-commands += parse_file select_file('server', 'sensation_server_profile*')
+commands += parse_file server_file_path
 
 #------------------------------------------
 
@@ -158,6 +160,8 @@ command_sequences.map! do |commands|
     commands.map { |c| Hash[c[:action] => c[:time]].merge(c.select {|k,| k != :action and k != :time }) }.reduce(:merge)
 end
 
+command_sequences.reject! { |commands| commands[:mode] == :delayed }
+
 # calculate some differences (new_name = second - first)
 DIFFS = { 
     probe_send: [:probe, :send], 
@@ -177,7 +181,7 @@ command_sequences.map! do |commands|
 end
 
 def csv(command_sequences, filename)
-    field_order = [:actor, :intensity, :probe, :probe_send, :send_parse, :parsing, :parse_process, :process_set_intensity, :set_intensity_set_pwm, :delay, :undelayed_total]
+    field_order = [:actor, :intensity, :probe, :probe_send, :send_parse, :parsing, :parse_process, :process_set_intensity, :set_intensity_set_pwm, :total]
     field_order.reject! { |field| !command_sequences[0].include? field }
     File.open(filename, 'w') do |file|
         file.write(field_order.map { |field| field.capitalize }.join(';') + "\n")
@@ -190,7 +194,9 @@ end
 if command_sequences.empty?
     puts "Nothing remaid - there's no output :-("
 else
-    csv_file = "profile_#{Time.now().strftime('%Y%m%d_%H%M')}.csv"
+    match = /\d{8}_\d{4}/.match(server_file_path)
+    time = match ? match.to_s : Time.now().strftime('%Y%m%d_%H%M')
+    csv_file = "profile_#{time}.csv"
     puts "Writing output to #{csv_file}..."
     csv(command_sequences, csv_file)
 end
