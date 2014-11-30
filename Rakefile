@@ -319,7 +319,7 @@ namespace :remote do
                     puts "#{Time.now.strftime('%H:%M:%S')}: synced"
                     terminal_title "synced"
                     sleep(1)
-                    terminal_title "copy:watch - #{Time.now.strftime(':%M:%S')}"
+                    terminal_title "copy:watch - #{Time.now.strftime('%H:%M:%S')}"
                 end
                 fsevent.run
             ensure
@@ -491,6 +491,7 @@ namespace :time do
             begin
                 poll_status.join
                 client.join
+            rescue Interrupt
             ensure
                 puts
                 puts `sudo /etc/init.d/ntp start`
@@ -538,6 +539,36 @@ namespace :performance do
         ensure
             terminal_title ""
         end
+    end
+end
+
+namespace :profile do
+    desc "Runs the profile log parser"
+    task :analyze do
+        exec(sibling_path('bin', 'profile_parser.rb'))
+    end
+
+    task :graph do
+        path = nil
+        Dir.chdir sibling_path 'log' do
+            logs = Dir.glob('c_profile*.prof').sort
+            if logs.size == 0
+                raise "No cProfile logs found in #{Dir.pwd}"
+            elsif logs.size == 1
+                path = logs[0]
+            else
+                puts "\ncProfile logs:"
+                logs.each_with_index { |file, index| puts "#{index}\t#{File.basename(file)}" }
+                print "\nSelect log: "
+                path = logs[STDIN.gets.strip.to_i]
+            end
+        end
+
+        path = sibling_path 'log', path
+        output = sibling_path 'log', File.basename(path, '.*') + '.png'
+        `#{PYTHON} #{sibling_path('bin', 'gprof2dot.py')} -f pstats #{path} | dot -Tpng -o #{output} 2>&1`
+        puts "Saved to #{output}"
+        `open #{output}`
     end
 end
 
