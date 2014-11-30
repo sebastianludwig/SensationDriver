@@ -89,12 +89,13 @@ def main():
     for element in server.handler:
         element.logger = logger
 
+    profiler = None
     if mode == "profile":
-        profile_log_path = project.relative_path('log', "sensation_server_profile_{:%Y%m%d_%H%M}.txt".format(datetime.datetime.now()))
-        profiler = sensationdriver.Profiler(profile_log_path)
+        profiler = sensationdriver.Profiler()
 
-        for element in server.handler:
-            element.profiler = profiler
+        if server.handler is not None:
+            for element in server.handler:
+                element.profiler = profiler
 
     try:
         with server:
@@ -105,6 +106,11 @@ def main():
             loop.run_forever()
     finally:
         loop.close()
+        if profiler is not None:
+            if logger is not None:
+                logger.info("Saving profiling data...")
+            profile_data_path = project.relative_path('log', "sensation_server_profile_{:%Y%m%d_%H%M}.txt".format(datetime.datetime.now()))
+            profiler.save_data(profile_data_path)
 
 
 
