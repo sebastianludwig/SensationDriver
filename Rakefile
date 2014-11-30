@@ -171,7 +171,7 @@ task :test, :pattern do |t, args|
             line = line.red if line.end_with?('ERROR', 'FAIL') or line.start_with?('ERROR', 'FAIL')
             line = line.green if line.end_with? 'ok', 'OK'
             puts line
-            sleep(0.02)
+            sleep(0.001)
         end
         puts
     end
@@ -189,7 +189,7 @@ namespace :test do
             puts("#" * 70)
             `rake -f #{__FILE__} test[#{args.pattern}]`.split("\n").each do |line|
                 puts line
-                sleep(0.02)
+                sleep(0.001)
             end
             puts("#" * 70)
         end
