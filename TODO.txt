@@ -2,6 +2,7 @@ http://www.raspberrypi.org/forums/viewtopic.php?t=92304
 
 - Back powering via P8: https://github.com/raspberrypi/hats/blob/master/designguide.md
 - Optimize with -O (https://docs.python.org/2/using/cmdline.html#cmdoption-O)
+- Sampling Frequency for probes
 - Rename actors to actor, test_patterns to test_pattern
 - Add "loop" parameter to pattern (also match text) - if there's a loop, there also needs to be a stop....
 - Improve pattern sampling
@@ -205,7 +206,7 @@ Profiling:
     Parsing:
         proto: use C++ backed parsing, once Python 3 compability is achieved 
             https://github.com/google/protobuf/issues/7
-            Maybe try 2.4.1 again: http://yz.mit.edu/wp/fast-native-c-protocol-buffers-from-python/
+            https://github.com/google/protobuf/pull/105
         Overclocking
             see overclocking.txt
             - 5k messages-test
@@ -217,16 +218,12 @@ Profiling:
         Change on the fly: `sudo modprobe -r i2c_bcm2708 && sudo modprobe i2c_bcm2708 baudrate=1000000`
         At boot time: modify /etc/modprobe.d/i2c.conf: options i2c_bcm2708 baudrate=800000
     Logging:
-        get rid of it...
-        Clean up auto logger creation pattern
-    Repeated Start? -> Auto Increment!
-        TODO
-            - methods to de/activate AI
-            - BOOL to keep track of status
-            - use either method
-    use assertions for sanity checks
+        disabled in -O runs
+    PCA9684 register address auto increment
+        works like a charm
+    Implement RelevanceFilter (new pipeline layout)
 
-
+    -> Achieved throughput => 350 msg / s - yay :-(
 
 
 Glossar
