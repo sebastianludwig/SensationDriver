@@ -61,7 +61,10 @@ def main():
     else:
         logger = logging.getLogger('production')
 
-    sys.excepthook = functools.partial(excepthook, logger)
+    if __debug__:
+        sys.excepthook = functools.partial(excepthook, logger)
+    else:
+        logger = None
 
 
     wirebus.I2C.configurePinouts(logger)
