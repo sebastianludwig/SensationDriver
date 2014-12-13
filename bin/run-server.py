@@ -84,12 +84,12 @@ def main():
 
     server = sensationdriver.Server(ip=ip, loop=loop, logger=logger)
 
-    inlet = pipeline.Noop()
-    patter_handler = handler.Pattern(inlet=inlet, loop=loop, logger=logger)
+    noop_inlet = pipeline.Element()
+    patter_handler = handler.Pattern(inlet=noop_inlet, loop=loop, logger=logger)
 
-    server.handler = message.Splitter() >> message.Parser() >> inlet >> [message.TypeFilter(protocol.Message.VIBRATION) >> pipeline.Counter(5000) >> message.DeprecatedFilter() >> handler.Vibration(actor_config),
-                                                                           message.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
-                                                                           message.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
+    server.handler = message.Splitter() >> message.Parser() >> pipeline.Logger(logger=logger) >> noop_inlet >> [message.TypeFilter(protocol.Message.VIBRATION) >> pipeline.Counter(5000) >> message.DeprecatedFilter() >> handler.Vibration(actor_config),
+                                                                                                                message.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
+                                                                                                                message.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
     
     for element in server.handler:
         element.logger = logger

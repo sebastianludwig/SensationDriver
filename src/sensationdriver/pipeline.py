@@ -99,10 +99,6 @@ class Element(object):
             pass
 
 
-class Noop(Element):
-    pass
-
-
 class Counter(Element):
     def __init__(self, limit, downstream=None, logger=None):
         super().__init__(downstream=downstream, logger=logger)
