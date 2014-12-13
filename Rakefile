@@ -154,12 +154,12 @@ task :compile do
         end
     end
 
-    mappings.insert(0, "\tstatic SensationPatterns() {")
+    mappings.insert(0, "\tstatic Patterns() {")
     mappings.push("\t}")
 
     lines = properties + [""] * 2 + mappings
 
-    IO.write(sibling_path('SensationPattern_properties.cs'), lines.join("\n"))
+    IO.write(sibling_path('Patterns_properties.cs'), lines.join("\n"))
 end
 
 desc "Run unit tests. Pass a filename pattern to only run these tests (rake test[actors])."

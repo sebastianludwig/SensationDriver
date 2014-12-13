@@ -1,7 +1,7 @@
 GIT
   remote: https://sebastianludwig@bitbucket.org/sebastianludwig/protobuf-generate.git
-  revision: 4282fffd8722d07a324be9b486c9706ed3b05179
-  ref: 4282fff
+  revision: 4a06cbb1ab3822d4bd59dc3a1a27990197f98cea
+  ref: 4a06cbb
   specs:
     protobuf-generate (0.2.4)
       erubis

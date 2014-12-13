@@ -1,4 +1,4 @@
-package sensationdriver;
+package sensation;
 
 message Vibration {
   enum Region {

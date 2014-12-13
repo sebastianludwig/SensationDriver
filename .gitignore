@@ -54,6 +54,6 @@ docs/_build/
 
 *.img.gz
 python2.7
-sensationdriver.cs
-SensationPattern_properties.cs
+sensation.cs
+Patterns_properties.cs
 log
