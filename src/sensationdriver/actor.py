@@ -5,6 +5,7 @@ import traceback
 from sortedcontainers import SortedDict
 
 from . import platform
+from . import helper
 
 if platform.is_raspberry():
     from adafruit import pca9685
@@ -210,7 +211,8 @@ class VibrationMotor(object):
             return future
         else:
             self._profile("set_intensity", self.index_in_region, intensity, priority, self._target_intensity, 'delayed')
-            return asyncio.Task(self.set_intensity_delayed(), loop=self._loop)
+
+            return helper.create_exception_reporting_task(self.set_intensity_delayed(), loop=self._loop, logger=self.logger)
 
     @asyncio.coroutine
     def set_intensity_delayed(self):

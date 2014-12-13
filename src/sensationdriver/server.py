@@ -1,5 +1,6 @@
 import asyncio
-import traceback
+
+from . import helper
 
 
 class Server(object):
@@ -33,17 +34,10 @@ class Server(object):
 
     def _accept_client(self, client_reader, client_writer):
         def client_disconnected(task):
-            if task.exception():
-                ex = task.exception()
-                output = traceback.format_exception(ex.__class__, ex, ex.__traceback__)
-                if self.logger is not None:
-                    self.logger.critical(''.join(output))
-
             del self._clients[task]
 
         # schedule a new Task to handle this specific client connection
-        # TODO use self._loop.create_task once Python 3.4.2 is released
-        task = asyncio.Task(self._handle_client(client_reader, client_writer), loop=self._loop)
+        task = helper.create_exception_reporting_task(self._handle_client(client_reader, client_writer), loop=self._loop, logger=self.logger)
         task.add_done_callback(client_disconnected)
 
         self._clients[task] = (client_reader, client_writer)

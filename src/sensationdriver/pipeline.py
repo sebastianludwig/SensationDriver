@@ -203,6 +203,7 @@ class Parallelizer(Element):
     @asyncio.coroutine
     def _process_single(self, data):
         def worker_finished(task):
+            # HINT maybe use helper.create_exception_reporting_task
             if not (self._tearing_down and task.cancelled()) and task.exception():
                 ex = task.exception()
                 output = traceback.format_exception(ex.__class__, ex, ex.__traceback__)

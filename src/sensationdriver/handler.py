@@ -3,6 +3,7 @@ import asyncio
 
 from . import pipeline
 from . import protocol
+from . import helper
 from .actor import VibrationMotor
 from .pattern import Track
 
@@ -86,6 +87,10 @@ class Pattern(object):
         return pattern
 
     def play(self, pattern):
+        def pattern_finished(task):
+            if self.logger is not None:
+                self.logger.info("finished playing pattern %s", pattern.identifier)
+
         if self.logger is not None:
             self.logger.info("play pattern %s", pattern.identifier)
         if not pattern.identifier in self.patterns:
@@ -97,7 +102,9 @@ class Pattern(object):
         for track in self.patterns[pattern.identifier]:
             tracks.append(Track(target_region=track.target_region, actor_index=track.actor_index, priority=pattern.priority, keyframes=track.keyframes))
 
-        return asyncio.Task(self._sample_tracks(tracks), loop=self._loop)
+        task = helper.create_exception_reporting_task(self._sample_tracks(tracks), loop=self._loop, logger=self.logger)
+        task.add_done_callback(pattern_finished)
+        return task
 
     @asyncio.coroutine    
     def _sample_tracks(self, tracks):
@@ -118,9 +125,6 @@ class Pattern(object):
             sleep_start = loop.time()
             yield from self._sleep_for_sampling_interval()      # TODO: improve this: measure the time needed to reduce sleeping time
             delta_time = loop.time() - sleep_start
-
-        if self.logger is not None:
-            self.logger.info("finished playing pattern %s", pattern.identifier)
 
     @asyncio.coroutine
     def _sleep_for_sampling_interval(self):
