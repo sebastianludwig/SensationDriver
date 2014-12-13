@@ -67,22 +67,6 @@ class Splitter(pipeline.Element):
         return messages
 
 
-class DeprecatedFilter(pipeline.Element):
-    def __init__(self, downstream=None, logger=None):
-        super().__init__(downstream=downstream, logger=logger)
-
-    @asyncio.coroutine
-    def _process(self, vibration_messages):
-        result = {}
-        for vibration in vibration_messages:
-            key = vibration.priority * 10000 + vibration.target_region * 100 + vibration.actor_index
-            result[key] = vibration
-        
-        result = result.values()
-        return result
-
-
-
 class Parser(pipeline.Element):
     @asyncio.coroutine
     def _process_single(self, data):
@@ -112,3 +96,18 @@ class TypeFilter(pipeline.Element):
             return getattr(container, attribute_name)
 
         return map(extract_message, filter(should_include, messages))
+
+
+class DeprecatedFilter(pipeline.Element):
+    def __init__(self, downstream=None, logger=None):
+        super().__init__(downstream=downstream, logger=logger)
+
+    @asyncio.coroutine
+    def _process(self, vibration_messages):
+        result = {}
+        for vibration in vibration_messages:
+            key = vibration.priority * 10000 + vibration.target_region * 100 + vibration.actor_index
+            result[key] = vibration
+        
+        result = result.values()
+        return result
