@@ -1,5 +1,6 @@
 import asyncio
 import time
+import traceback
 
 from sortedcontainers import SortedDict
 
@@ -185,7 +186,13 @@ class VibrationMotor(object):
     @asyncio.coroutine
     def set_intensity(self, intensity, priority=100):
         intensity = float(intensity)
-        if intensity < 0 or intensity > 1: raise ValueError('intensity not in interval [0, 1]: %s' % intensity)
+        if (intensity < 0 or intensity > 1) and self.logger:
+            self.logger.warning('clamping intensity - not in interval [0, 1]: %s' % intensity)
+            intensity = max(min(intensity, 1), 0)
+            if __debug__:
+                self.logger.warning("".join(traceback.format_stack()))
+        
+        
         self._intensity.set(intensity, priority)
 
         if self._intensity.eval() < self._SENSITIVITY:
