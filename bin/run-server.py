@@ -20,7 +20,7 @@ import sensationdriver
 from sensationdriver import pipeline
 from sensationdriver import message
 from sensationdriver import handler
-from sensationdriver import actors
+from sensationdriver import actor
 from sensationdriver import protocol
 from sensationdriver import platform
 
@@ -79,7 +79,7 @@ def main():
 
 
     with open(project.relative_path('conf', 'actor_conf.json')) as f:
-        actor_config = actors.parse_config(yaml.load(f), loop=loop, logger=logger)
+        actor_config = actor.parse_config(yaml.load(f), loop=loop, logger=logger)
 
 
     server = sensationdriver.Server(ip=ip, loop=loop, logger=logger)

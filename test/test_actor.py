@@ -3,9 +3,9 @@ import time
 
 from utils import *
 
-from sensationdriver import actors
-from sensationdriver.actors import PrioritizedIntensity
-from sensationdriver.actors import VibrationMotor
+from sensationdriver import actor
+from sensationdriver.actor import PrioritizedIntensity
+from sensationdriver.actor import VibrationMotor
 
 
 class TestPrioritizedIntensity(unittest.TestCase):
@@ -283,7 +283,7 @@ class TestActorConfigParsing(unittest.TestCase):
                     }"""
         config = yaml.load(config)
 
-        result = actors.parse_config(config)
+        result = actor.parse_config(config)
         self.assertEqual(len(result['drivers']), 2)
         self.assertEqual(len(result['regions']), 2)
         self.assertEqual(len(result['regions']['LEFT_HAND']), 2)
@@ -323,7 +323,7 @@ class TestActorConfigParsing(unittest.TestCase):
                     }"""
         config = yaml.load(config)
 
-        result = actors.parse_config(config)
+        result = actor.parse_config(config)
         self.assertEqual(len(result['drivers']), 1)
         self.assertEqual(len(result['regions']), 2)
         self.assertEqual(result['regions']['LEFT_HAND'][0].driver, result['regions']['LEFT_FOREARM'][0].driver)
@@ -362,7 +362,7 @@ class TestActorConfigParsing(unittest.TestCase):
                     }"""
         config = yaml.load(config)
 
-        result = actors.parse_config(config)
+        result = actor.parse_config(config)
         self.assertEqual(len(result['drivers']), 2)
         self.assertEqual(len(result['regions']), 1)
         self.assertEqual(len(result['regions']['LEFT_HAND']), 2)
@@ -394,13 +394,13 @@ class TestActorConfigParsing(unittest.TestCase):
                     }"""
         config = yaml.load(config)
 
-        result = actors.parse_config(config, logger=TestLogger())
+        result = actor.parse_config(config, logger=TestLogger())
 
-        actor = result['regions']['LEFT_HAND'][0]
-        self.assertEqual(actor.mapping_curve_degree, 42)
-        self.assertEqual(actor.min_intensity, 43)
-        self.assertEqual(actor.min_intensity_warmup, 44)
-        self.assertEqual(actor.min_instant_intensity, 45)
+        a = result['regions']['LEFT_HAND'][0]
+        self.assertEqual(a.mapping_curve_degree, 42)
+        self.assertEqual(a.min_intensity, 43)
+        self.assertEqual(a.min_intensity_warmup, 44)
+        self.assertEqual(a.min_instant_intensity, 45)
 
     def test_region_actor_settings(self):
         config = """{
@@ -434,13 +434,13 @@ class TestActorConfigParsing(unittest.TestCase):
                     }"""
         config = yaml.load(config)
 
-        result = actors.parse_config(config, logger=TestLogger())
+        result = actor.parse_config(config, logger=TestLogger())
 
-        actor = result['regions']['LEFT_HAND'][0]
-        self.assertEqual(actor.mapping_curve_degree, 52)
-        self.assertEqual(actor.min_intensity, 53)
-        self.assertEqual(actor.min_intensity_warmup, 54)
-        self.assertEqual(actor.min_instant_intensity, 55)
+        a = result['regions']['LEFT_HAND'][0]
+        self.assertEqual(a.mapping_curve_degree, 52)
+        self.assertEqual(a.min_intensity, 53)
+        self.assertEqual(a.min_intensity_warmup, 54)
+        self.assertEqual(a.min_instant_intensity, 55)
 
     def test_local_actor_settings(self):
         config = """{
@@ -479,13 +479,13 @@ class TestActorConfigParsing(unittest.TestCase):
                     }"""
         config = yaml.load(config)
 
-        result = actors.parse_config(config, logger=TestLogger())
+        result = actor.parse_config(config, logger=TestLogger())
 
-        actor = result['regions']['LEFT_HAND'][0]
-        self.assertEqual(actor.mapping_curve_degree, 62)
-        self.assertEqual(actor.min_intensity, 63)
-        self.assertEqual(actor.min_intensity_warmup, 64)
-        self.assertEqual(actor.min_instant_intensity, 65)
+        a = result['regions']['LEFT_HAND'][0]
+        self.assertEqual(a.mapping_curve_degree, 62)
+        self.assertEqual(a.min_intensity, 63)
+        self.assertEqual(a.min_intensity_warmup, 64)
+        self.assertEqual(a.min_instant_intensity, 65)
 
 
 if __name__ == '__main__':

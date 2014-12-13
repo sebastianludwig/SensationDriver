@@ -3,7 +3,7 @@ import asyncio
 
 from . import pipeline
 from . import protocol
-from .actors import VibrationMotor
+from .actor import VibrationMotor
 from .pattern import Track
 
 
