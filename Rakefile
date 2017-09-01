@@ -15,7 +15,7 @@ require 'thread'
 PI_HOSTNAME = "sensationdriver.local"
 PI_USER = 'pi'
 SERVER_LOG_PATH = File.join('log', 'server.log')
-PYTHON = 'python3.4'
+PYTHON = 'python3'
 DAEMON_SCRIPT = 'sensation_daemon.sh'
 
 ######
@@ -227,12 +227,12 @@ namespace :daemon do
 
     remote_task :enable do
         desc "Enable the init.d scripts"
-        backticks 'sudo update-rc.d #{DAEMON_SCRIPT} enable', local_only_on_pi: true
+        backticks "sudo update-rc.d #{DAEMON_SCRIPT} enable", local_only_on_pi: true
     end
     
     remote_task :disable do
         desc "Disable the init.d scripts"
-        backticks 'sudo update-rc.d #{DAEMON_SCRIPT} disable', local_only_on_pi: true
+        backticks "sudo update-rc.d #{DAEMON_SCRIPT} disable", local_only_on_pi: true
     end
 
     remote_task :start do
