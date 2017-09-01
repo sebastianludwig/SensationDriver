@@ -87,7 +87,7 @@ def main():
     noop_inlet = pipeline.Element()
     patter_handler = handler.Pattern(inlet=noop_inlet, loop=loop, logger=logger)
 
-    server.handler = message.Splitter() >> message.Parser() >> pipeline.Logger(logger=logger) >> noop_inlet >> [message.TypeFilter(protocol.Message.VIBRATION) >> pipeline.Counter(5000) >> message.DeprecatedFilter() >> handler.Vibration(actor_config),
+    server.handler = message.Splitter() >> message.Parser() >> noop_inlet >> pipeline.Logger(logger=logger) >> [message.TypeFilter(protocol.Message.VIBRATION) >> pipeline.Counter(5000) >> message.DeprecatedFilter() >> handler.Vibration(actor_config),
                                                                                                                 message.TypeFilter(protocol.Message.LOAD_PATTERN) >> pipeline.Dispatcher(patter_handler.load),
                                                                                                                 message.TypeFilter(protocol.Message.PLAY_PATTERN) >> pipeline.Dispatcher(patter_handler.play)]
     
