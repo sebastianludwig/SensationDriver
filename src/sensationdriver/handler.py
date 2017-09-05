@@ -99,8 +99,13 @@ class Pattern(object):
             return pattern
 
         tracks = []
-        for track in self.patterns[pattern.identifier]:
-            tracks.append(Track(target_region=track.target_region, actor_index=track.actor_index, priority=pattern.priority, keyframes=track.keyframes))
+        for track_config in self.patterns[pattern.identifier]:
+            try:
+                track = Track(target_region=track_config.target_region, actor_index=track_config.actor_index, priority=pattern.priority, keyframes=track_config.keyframes)
+                tracks.append(track)
+            except:
+                if self.logger is not None:
+                    self.logger.error("Failed to parse track for actor %d in region %s. This track will be ignored.", track_config.actor_index, track_config.target_region)
 
         task = helper.create_exception_reporting_task(self._sample_tracks(tracks), loop=self._loop, logger=self.logger)
         task.add_done_callback(pattern_finished)
