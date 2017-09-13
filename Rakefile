@@ -122,6 +122,19 @@ def ssh_backtick(command)
     backtick(ssh_command(command))
 end
 
+def copy_project_to_remote(destination)
+  excludes = %w(
+      __pycache__
+      include
+      lib
+      log
+      *.img.gz
+      .*
+  ).map { |e| "--exclude '#{e}'" }
+  command = "rsync -ar -e \"ssh -l #{PI_USER}\" --delete #{excludes.join(' ')} #{File.dirname(__FILE__)}/ #{destination}:#{remote_project_path}"
+  backtick(command)
+end
+
 namespace :dependencies do
     desc "Install python package dependencies through pip."
     task :install do
@@ -281,16 +294,7 @@ namespace :remote do
     desc "Copy project files to the Raspberry. Uses the configured hostname by default, accepts the IP address as optional argument (rake 'remote:copy[192.168.0.70]')."
     task :copy, :destination do |t, args|
         args.with_defaults destination: PI_HOSTNAME
-        excludes = %w(
-            __pycache__
-            include
-            lib
-            log
-            *.img.gz
-            .*
-        ).map { |e| "--exclude '#{e}'" }
-        command = "rsync -ar -e \"ssh -l #{PI_USER}\" --delete #{excludes.join(' ')} #{File.dirname(__FILE__)}/ #{args.destination}:#{remote_project_path}"
-        backtick(command)
+        copy_project_to_remote(args.destination)
     end
 
     namespace :copy do
@@ -299,9 +303,10 @@ namespace :remote do
             begin
                 terminal_title "copy:watch"
                 ip = nil
+                counter = 0
 
                 fsevent = FSEvent.new
-                options = {:latency => 5, :no_defer => true }
+                options = { :latency => 2, :no_defer => true }
                 fsevent.watch File.dirname(__FILE__), options do |directories|
                     puts "syncing..."
                     terminal_title "syncing..."
@@ -316,11 +321,12 @@ namespace :remote do
                         end
                     end
 
-                    `rake -f #{__FILE__} "remote:copy[#{ip}]"`
+                    copy_project_to_remote(ip)
                     puts "#{Time.now.strftime('%H:%M:%S')}: synced"
                     terminal_title "synced"
-                    sleep(1)
-                    terminal_title "copy:watch - #{Time.now.strftime('%H:%M:%S')}"
+                    sleep(0.5)
+                    counter += 1
+                    terminal_title "copy:watch - #{counter} - #{Time.now.strftime('%H:%M:%S')}"
                 end
                 fsevent.run
             ensure
