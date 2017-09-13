@@ -369,7 +369,7 @@ namespace :backup do
 
         puts "Creating backup #{File.basename(output_path)} - this may take a while.. c[´]"
 
-        puts `sudo dd bs=1M if=/dev/rdisk#{disk_number} | gzip > '#{output_path}'`
+        puts `sudo dd bs=1m if=/dev/rdisk#{disk_number} | gzip > '#{output_path}'`
 
         puts "Finished: #{File.basename(output_path)} (#{'%.2f' % (File.size(output_path) / (1000.0 ** 3))} GB) - open in Finder? [y/n]"
         answer = STDIN.gets.strip
@@ -393,6 +393,7 @@ namespace :backup do
         backup_path = backups[STDIN.gets.strip.to_i]
         puts
 
+        puts "Chose SD card disk:"
         puts `sudo diskutil list`
         puts "\nEnter disk number (dev/diskX): [2..n]"
         disk_number = STDIN.gets.strip.to_i
@@ -403,9 +404,9 @@ namespace :backup do
         puts "Restoring backup #{File.basename(backup_path)} - this may take a while.. c[´]"
 
         if File.extname(backup_path) == '.gz'
-            puts `gzip -dc "#{backup_path}" | sudo dd bs=1M of=/dev/rdisk#{disk_number}`
+            puts `gzip -dc "#{backup_path}" | sudo dd bs=1m of=/dev/rdisk#{disk_number} conv=sync`
         else
-            puts `sudo dd bs=1M of=/dev/rdisk#{disk_number}`
+            puts `sudo dd bs=1m if="#{backup_path}" of=/dev/rdisk#{disk_number} conv=sync`
         end
 
         puts "Finished"        
