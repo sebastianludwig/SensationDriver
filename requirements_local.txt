@@ -1,0 +1,8 @@
+#encoding: utf-8
+
+# Necessary dependencies to be installed on your local dev machine
+# satify by running: `pip3 install -r requirements_local.txt`
+
+PyYAML>=3.09
+sortedcontainers>=0.8.3
+protobuf>=3.4

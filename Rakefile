@@ -1,6 +1,5 @@
 #encoding: utf-8
 
-
 # call rake -T get a list of all invocable tasks
 # call rake all=true -T to get all tasks
 # call rake [all=true] -D to get a little bit more description
@@ -126,8 +125,8 @@ end
 namespace :dependencies do
     desc "Install python package dependencies through pip."
     task :install do
-        command = "#{PYTHON} -m pip install -r #{sibling_path('requirements.txt')}"
-        command += " -r #{sibling_path('requirements_rpi.txt')}" if is_raspberry?
+        requirements = is_raspberry? ? sibling_path('requirements_raspi.txt') : sibling_path('requirements_local.txt')
+        command = "#{PYTHON} -m pip install -r #{requirements}"
         command = "sudo " + command if is_raspberry?
         puts `#{command}`
     end

@@ -1,3 +1,0 @@
-# Additionally necessary dependencies to be installed on the Raspberry
-
-RPi.GPIO>=0.5.4
