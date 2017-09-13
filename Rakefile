@@ -200,7 +200,9 @@ desc 'Starts the sensation server.'
 task :server do |t, args|
     extras = args.extras
     extras << 'debug' if (extras & ['debug', 'production', 'profile']).empty?
-    command = "bash -c '#{PYTHON} #{sibling_path('bin', 'run-server.py')} #{extras.join(' ')}'"
+    command = "bash -c '#{PYTHON} "
+    command += "-O " if extras.include? 'production'
+    command += "#{sibling_path('bin', 'run-server.py')} #{extras.join(' ')}'"
     command = "sudo " + command if is_raspberry?
     exec(command)
 end
