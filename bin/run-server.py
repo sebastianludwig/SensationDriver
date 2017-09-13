@@ -40,6 +40,11 @@ def excepthook(logger, *args):
   logger.critical('Uncaught exception:', exc_info=args)
 
 
+def protobuf_implementation():
+    from google.protobuf.internal import api_implementation
+    return api_implementation._default_implementation_type
+
+
 def main():
     mode = None
     if sys.argv[-1] in ["profile", "debug", "production"]:
@@ -66,6 +71,10 @@ def main():
     else:
         logger = None
 
+
+    if protobuf_implementation() != 'cpp' and logger is not None:
+        logger.warning("Not using C++ Protocol Buffer implementation. Things will be slow!")
+    
 
     wirebus.I2C.configurePinouts(logger)
     pca9685.Driver.softwareReset()
